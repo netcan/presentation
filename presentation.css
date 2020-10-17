@@ -131,6 +131,12 @@ section .content {
     padding-right: 1%;
 }
 
+
+.reveal p {
+    margin: 10px 0;
+    line-height: 1.3;
+}
+
 section .paragraph {
     font-size: 20pt;
 }
@@ -162,8 +168,26 @@ section .ulist {
 .fa.fa-lightbulb-o:before {
     content: "\f0eb";
     color: #a75a42;
+    font-size: 24pt;
+}
+
+.fa-info-circle:before {
+    color: #19407c;
+    font-size: 24pt;
 }
 
 .reveal table tbody tr:last-child th, .reveal table tbody tr:last-child td {
-    padding: .4em .2em 0 0;
+    padding: .0em .2em 0 .2em;
+    vertical-align: middle;
 }
+
+.admonitionblock>table td.content {
+    border-left-width: 1px;
+    border-left-style: dashed;
+    border-left-color: rgb(239 203 190 / 0.64);
+}
+
+.reveal table {
+    margin: initial;
+}
+

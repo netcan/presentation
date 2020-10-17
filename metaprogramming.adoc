@@ -118,7 +118,7 @@ int main() {
 }
 ----
 [.fragment]
-<1> 实例化类型 `Collection<int>`, `Collection<string>`
+<1> 实例化类型 `Collection_int`, `Collection_string`
 <2> 实例化成员函数
 
 === 泛型容器 & 模板
@@ -209,6 +209,11 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 * 延迟计算
 * 模式匹配
 
+[.notes]
+--
+由最基本的函数，通过函数组合实现复杂逻辑
+--
+
 [.columns]
 === 模板元编程：数值计算
 [.column]
@@ -258,8 +263,8 @@ Fibonacci_v<10> // 55
 ----
 
 [.fragment]
-TIP: 1. 约定 [.blue]*尖括号* 为模板元函数调用，`value` 作为函数的 [.blue]*返回值* +
-2. 模板元函数名后缀 `_v` 为其别名
+TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`value` 作为函数的 [.blue]*返回值*: `F<IN>::value` +
+2. 模板元函数名后缀 `_v` 为其别名: `F_v<IN>`
 --
 
 [.columns]
@@ -302,8 +307,8 @@ AddPointer_t<int> px2 = new int{5};
 ----
 
 [.fragment]
-TIP: 1. 约定 [.blue]*尖括号* 为模板元函数调用，`type` 作为函数的 [.blue]*返回类型* +
-2. 模板元函数名后缀 `_t` 为其别名
+TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`type` 作为函数的 [.blue]*返回类型*: `typename F<IN>::type` +
+2. 模板元函数名后缀 `_t` 为其别名: `F_t<IN>`
 --
 
 == 模板元编程：基础数据类型
@@ -311,8 +316,8 @@ TIP: 1. 约定 [.blue]*尖括号* 为模板元函数调用，`type` 作为函数
 复合数据类型：`TypeList`
 
 [%step]
-* [.blue]*输入* 多个 *类型* 参数：`T1, T2, ...`
-* [.blue]*输出* 一个 `TypeList` 类型
+* 输入多个 *类型* 参数：`T1, T2, ...`
+* 输出一个 `TypeList` 类型
 
 [.fragment]
 [source,cpp]
@@ -334,6 +339,7 @@ struct TypeList {
 
 [%step]
 * 向TypeList尾部插入一些类型: `append`
+* 类型参数转发: `exportTo`
 * 判断当前类型是否为 TypeList: `IsTypeList`
 * 判断类型是否在TypeList中: `Elem`
 * 高阶函数
@@ -341,10 +347,7 @@ struct TypeList {
 ** `Filter`
 ** `Fold`
 
-[.columns]
-=== append操作
-[.column]
---
+=== append
 向TypeList尾部插入一些类型: `append`
 
 [.fragment]
@@ -356,13 +359,10 @@ struct TypeList {
   using append = TypeList<Ts..., T...>; // <2>
 };
 ----
---
 
-[.column]
 [.fragment]
---
-<1> [.blue]#输入# 一些需要插入的类型参数 `T...`
-<2> [.blue]#输出# 插入类型之后的TypeList
+<1> 输入一些需要插入的类型参数 `T...`
+<2> 输出插入类型之后的TypeList
 
 [.fragment]
 icon:question[role="orange"]
@@ -376,12 +376,42 @@ static_assert(
         TypeList<int, char>::append<long>,
         TypeList<int, char, long>>);
 ----
---
 
-[.columns]
+=== exportTo
+类型参数转发: `exportTo`
+
+[.fragment]
+将 `TypeList<Ts...>` 参数转发至其他模板类，例如转成： `std::tuple<Ts...>`
+
+[.fragment]
+[source,cpp]
+----
+template <typename ...Ts>
+struct TypeList {
+    template <template<typename...> typename T> // <1>
+    using exportTo = T<Ts...>; // <2>
+};
+----
+
+[.fragment]
+<1> 输入一个模板类 T
+<2> 输出转发类型参数后的模板类 T<Ts...>
+
+[.fragment]
+NOTE: `template<typename ...> typename T` 表示模板类 `T` 接收可变类型参数
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+TypeList<int, char>::exportTo<std::tuple> // std::tuple<int, char>
+TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
+----
+
 === IsTypeList
-[.column]
---
 判断当前类型是否为 TypeList: `IsTypeList`
 
 [.fragment]
@@ -400,10 +430,7 @@ struct IsTypeList<TypeList<Ts...>> { // <3>
 template<typename IN>
 constexpr bool IsTypeList_v = IsTypeList<IN>::value; // <4>
 ----
---
 
-[.column.is-one-third]
---
 [.fragment]
 <1> 输入类型参数 IN
 <2> 默认认为该类型不是TypeList
@@ -421,4 +448,185 @@ IsTypeList_v<int>; // false
 IsTypeList_v<TypeList<int>>; // true
 ----
 
+=== Elem
+判断类型是否在TypeList中: `Elem`
+[.fragment]
+[source,cpp]
+----
+template<typename IN, typename E> // <1>
+struct Elem {
+    static constexpr bool value = false; // <2>
+};
+
+template<typename E, typename ...Ts>
+struct Elem<TypeList<Ts...>, E> {
+    static constexpr bool value = (std::is_same_v<E, Ts> || ...); // <3>
+};
+
+template<typename IN, typename E>
+constexpr bool Elem_v = Elem<IN, E>::value;
+----
+
+[.fragment]
+<1> 输入两个类型参数：IN, E
+<2> 默认认为E不存在于IN中
+<3> 模式匹配，若IN类型为TypeList，则其一个个类型与E匹配
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+Elem_v<TypeList<int>, int>; // true
+Elem_v<TypeList<int>, float>; // false
+----
+
+== 高阶函数
+数学和计算机科学定义如下高阶函数：
+
+[.fragment]
+* 输入的参数为函数
+* 输出的参数为函数
+
+[.fragment]
+常用到的有：
+
+[.fragment]
+.Sort
+[source,cpp]
+----
+template< class RandomIt, class Compar>
+void sort(RandomIt first, RandomIt last,
+    Compare comp); // <1>
+----
+
+[.fragment]
+<1> sort为高阶函数，其输入参数为 `comp` 函数
+
+=== Map高阶函数
+
+* 输入一个列表和函数 f
+* 输出对列表中的每个元素进行f函数调用后的列表
+
+[.fragment]
+image::Mapping-steps-loillibe-new.gif[100%,80%]
+
+=== Filter高阶函数
+
+* 输入一个列表和谓词函数P
+* 对列表中的每个元素进行过滤操作，输出只保留谓词函数为真的元素的列表
+
+[.fragment]
+image::Filter-steps-loillierbe.gif[100%,80%]
+
+[.columns]
+=== Fold高阶函数
+[.column]
 --
+* 输入一个列表，二元函数f，和初值init
+* 输出一个元素，结果为列表每个元素与二元函数递归调用后的结果
+--
+
+[.column.is-one-third]
+--
+[.fragment]
+image::fold.jpg[]
+--
+
+== 高阶函数
+[quote, Conor Hoekstra, 'https://github.com/codereport/Talks/raw/master/2020-09-CppCon/SICP/Structure%20and%20Interpretation%20of%20Computer%20Programs%20-%20SICP.pdf[Structure and Interpretation of Computer Programs - SICP]']
+____
+Richard Waters (1979) developed a program that automatically analyzes traditional Fortran programs, viewing them in terms of *maps*, *filters*, and *accumulations*. He found that fully *90 percent* of the code in the Fortran Scientific Subroutine Package fits neatly into this paradigm. One of the reasons for the success of Lisp as a programming language is that lists provide a standard medium for expressing ordered collections so that they can be manipulated using higher-order operations. The programming language APL owes much of its power and appeal to a similar choice. In APL all data are represented as arrays, and there is a universal and convenient set of generic operators for all sorts of array operations.
+____
+
+=== Map实现
+[source.fragment, cpp]
+----
+template<typename IN, template <typename> class F> // <1>
+struct Map; // <2>
+
+template<template <typename> class F, typename ...Ts>
+struct Map<TypeList<Ts...>, F> {
+    using type = TypeList<typename F<Ts>::type...>; // <3>
+};
+
+template<typename IN, template <typename> class F>
+using Map_t = typename Map<IN, F>::type;
+----
+
+[.fragment]
+<1> 输入类型参数 IN 和 元函数 F
+<2> 元函数Map声明
+<3> 模式匹配当IN类型为TypeList时，对其每个 `Ts...` 元素进行元函数调用
+
+[.fragment]
+NOTE: 1. `template <typename> class F` 为元函数声明，表示该函数输入一个类型参数 +
+2. `typename F<Ts>::type` 表示对元函数 F 调用，输入一个类型参数 `Ts`，返回调用后的类型参数 `::type`
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+Map_t<TypeList<int*, char*>, std::remove_pointer> // TypeList<int, char>
+----
+
+=== Filter实现
+[source.column.fragment,cpp]
+----
+template<typename IN, template <typename> class P, typename OUT = TypeList<>> // <1>
+struct Filter {
+    using type = OUT; // <2>
+};
+
+template<template <typename> class P, typename OUT, typename H, typename ...Ts>
+class Filter<TypeList<H, Ts...>, P, OUT> {
+    using tails = TypeList<Ts...>; // <3>
+public:
+    using type = typename std::conditional_t<P<H>::value, // <4>
+          Filter<tails, P, typename OUT::template append<H>>,
+          Filter<tails, P, OUT>>::type;
+};
+
+template<typename IN, template <typename> class P>
+using Filter_t = typename Filter<IN, P>::type;
+----
+
+[.fragment]
+<1> 输入类型参数 IN 和 谓词函数 P
+<2> 默认返回类型为空 TypeList; 列表为空时递归终止返回当前 OUT TypeList
+<3> 模式匹配当类型参数 IN 为 *非空* TypeList时，`tails` 取除了第一个元素后剩下元素组成的TypeList
+<4> 对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList
+
+[.fragment]
+NOTE: Filter实现采用了尾递归方式，可能有助于编译器提高编译速度 +
+`P<H>::value` 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 `::value`
+
+=== Fold实现
+[source.column.fragment,cpp]
+----
+template<typename IN, typename INIT, template<typename, typename> class OP> // <1>
+struct FoldL { using type = INIT; }; <2>
+
+template<typename IN, typename INIT, template<typename, typename> class OP>
+using FoldL_t = typename FoldL<IN, INIT, OP>::type;
+
+template<typename ACC, template<typename, typename> class OP,
+    typename H, typename ...Ts>
+struct FoldL<TypeList<H, Ts...>, ACC, OP> {
+    using type = FoldL_t<TypeList<Ts...>, typename OP<ACC, H>::type, OP>; // <3>
+};
+----
+
+[.fragment]
+<1> 输入类型参数 IN，初始类型参数 INIT, 二元函数 OP
+<2> 默认返回初值；列表为空时递归终止返回当前 INIT 参数
+<3> 对当前参数 H 执行二元函数 OP, 其返回类型更新 INIT 参数
+
+[.fragment]
+NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `typename` 说明该函数输入两个类型参数 +
+2. `typename OP<ACC, H>::type` 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 `::type`
