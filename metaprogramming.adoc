@@ -240,9 +240,9 @@ constexpr size_t Fibonacci_v = Fibonacci<N>::value; // <5>
 [.column.is-one-third]
 --
 [.fragment]
-<1> 模板元函数 [.blue]*输入* 参数N
+<1> 模板元函数 [.blue]*输入* 参数N，`size_t` 表明输入参数为 [.blue]*值*
 <2> 模板元函数名 `Fibonacci`
-<3> 模板元函数 [.blue]*输出* 返回值 `value`
+<3> 模板元函数 [.blue]*输出* 返回 [.blue]*值* `value`
 <4> 模式匹配，函数递归的边界条件
 <5> 别名，方便调用
 
@@ -258,7 +258,8 @@ Fibonacci_v<10> // 55
 ----
 
 [.fragment]
-TIP: 约定 [.blue]*尖括号* 为模板元函数调用，`value` 作为函数的 [.blue]*返回值*
+TIP: 1. 约定 [.blue]*尖括号* 为模板元函数调用，`value` 作为函数的 [.blue]*返回值* +
+2. 模板元函数名后缀 `_v` 为其别名
 --
 
 [.columns]
@@ -278,14 +279,135 @@ template <typename T>
 using AddPointer_t =
     typename AddPointer<T>::type; // <4>
 ----
+[.fragment]
+<1> 模板元函数 [.blue]*输入* 类型T，`typename` 表明输入参数是 [.blue]*类型*
+<2> 模板元函数名
+<3> 模板元函数 [.blue]*输出* 返回 [.blue]*类型* `type`
+<4> 别名，方便调用
 --
 
 [.column]
 --
+
 [.fragment]
-<1> 模板元函数 [.blue]*输入* 类型T
-<2> 模板元函数名
-<3> 模板元函数 [.blue]*输出* 返回类型 `type`
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+typename AddPointer<int>::type px =
+    new int{5};
+AddPointer_t<int> px2 = new int{5};
+----
+
+[.fragment]
+TIP: 1. 约定 [.blue]*尖括号* 为模板元函数调用，`type` 作为函数的 [.blue]*返回类型* +
+2. 模板元函数名后缀 `_t` 为其别名
+--
+
+== 模板元编程：基础数据类型
+[.fragment]
+复合数据类型：`TypeList`
+
+[%step]
+* [.blue]*输入* 多个 *类型* 参数：`T1, T2, ...`
+* [.blue]*输出* 一个 `TypeList` 类型
+
+[.fragment]
+[source,cpp]
+----
+template <typename ...Ts> // <1>
+struct TypeList {
+    using type = TypeList<Ts...>; // <2>
+    constexpr static size_t size = sizeof...(Ts); // <3>
+};
+----
+
+[.fragment]
+<1> 输入参数
+<2> 输出类型
+<3> 列表长度
+
+=== TypeList
+基本操作
+
+[%step]
+* 向TypeList尾部插入一些类型: `append`
+* 判断当前类型是否为 TypeList: `IsTypeList`
+* 判断类型是否在TypeList中: `Elem`
+* 高阶函数
+** `Map`
+** `Filter`
+** `Fold`
+
+[.columns]
+=== append操作
+[.column]
+--
+向TypeList尾部插入一些类型: `append`
+
+[.fragment]
+[source,cpp]
+----
+template <typename ...Ts>
+struct TypeList {
+  template <typename ...T> // <1>
+  using append = TypeList<Ts..., T...>; // <2>
+};
+----
+--
+
+[.column]
+[.fragment]
+--
+<1> [.blue]#输入# 一些需要插入的类型参数 `T...`
+<2> [.blue]#输出# 插入类型之后的TypeList
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+static_assert(
+    std::is_same_v<
+        TypeList<int, char>::append<long>,
+        TypeList<int, char, long>>);
+----
+--
+
+[.columns]
+=== IsTypeList
+[.column]
+--
+判断当前类型是否为 TypeList: `IsTypeList`
+
+[.fragment]
+[source,cpp]
+----
+template<typename IN> // <1>
+struct IsTypeList {
+    constexpr static bool value = false; // <2>
+};
+
+template<typename ...Ts>
+struct IsTypeList<TypeList<Ts...>> { // <3>
+    constexpr static bool value = true;
+};
+
+template<typename IN>
+constexpr bool IsTypeList_v = IsTypeList<IN>::value; // <4>
+----
+--
+
+[.column.is-one-third]
+--
+[.fragment]
+<1> 输入类型参数 IN
+<2> 默认认为该类型不是TypeList
+<3> 模式匹配，当类型参数IN和TypeList类型一致时，返回 true
 <4> 别名，方便调用
 
 [.fragment]
@@ -295,15 +417,8 @@ icon:question[role="orange"]
 [.fragment]
 [source,cpp]
 ----
-AddPointer<int>::type px = new int{5};
-AddPointer_t<int> px2 = new int{5};
+IsTypeList_v<int>; // false
+IsTypeList_v<TypeList<int>>; // true
 ----
 
-[.fragment]
-TIP: 约定 [.blue]*尖括号* 为模板元函数调用，`type` 作为函数的 [.blue]*返回类型*
 --
-
-=== 模板元编程：基础数据类型
-
-
-
