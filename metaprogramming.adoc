@@ -1,17 +1,238 @@
-= Title Slide
+= C++模板元编程
+:customcss: presentation.css
+:revealjsdir: https://cdn.jsdelivr.net/npm/reveal.js@3.9.2
+:revealjs_theme: serif
+:highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/atom-one-light.css
+:highlightjs-languages: cpp
+:source-highlighter: highlightjs
+:revealjs_history: true
+:icons: font
+罗能 {docdate} @Shanghai
 
-== Slide One
+template <typename 😀>
 
-* Foo
-* Bar
-* World
+== 模板介绍
 
-== Slide Two
+[%step]
+* 起初为了支持泛型替代宏而设计的语法
+* 类型安全，编译期提前检查错误
+* 人们无意中发现可以用于 [red]*编译期* 计算
+* 语言标准发展不断完善元编程体验
 
-A Great Story
+== 泛型算法 & 宏
+
+[.fragment]
+[source,cpp]
+----
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+MAX(a++, b++) // (((a++) > (b++)) ? (a++) : (b++))
+MAX(0, "123") // runtime error
+----
+
+[.fragment]
+[source,cpp,subs="none"]
+----
+void qsort( void *ptr, size_t count, size_t size,
+    int (*comp)(const <mark>void *</mark>, const <mark>void *</mark>) );
+----
+
+[.fragment]
+[source,cpp]
+----
+int values[] = { 88, 56, 100, 2, 25 };
+int cmpfunc (const void* a, const void* b) {
+   return ( *(int*)a - *(int*)b );
+}
+qsort(values, 5, sizeof(int), cmpfunc);
+----
+
+=== 泛型算法 & 模板函数
+[.fragment]
+[source,cpp]
+----
+template<typename T>
+T max(T&& a, T&& b) {
+    return a > b ? a : b;
+}
+----
+
+[.fragment]
+[source,cpp]
+----
+max(0, "123"); // error: no matching function for call to 'max(int, const char [4])'
+----
+
+[.fragment]
+[source,cpp]
+----
+template<class RandomIt, class Compare>
+void sort(RandomIt first, RandomIt last, Compare comp);
+----
+
+[.fragment]
+[source,cpp]
+----
+int values[] = { 88, 56, 100, 2, 25 };
+std::sort(values, values + 5, [](int a, int b) {
+    return a < b;
+});
+----
+
+=== 泛型容器 & 宏
+[source,cpp]
+----
+// collection.h
+struct Collection_ ## TYPE {
+ TYPE *array; // <1>
+ size_t size, n;
+};
+
+#ifdef INSTANCE // <2>
+Collection_ ## TYPE make_Collection_ ## TYPE(size_t sz) {
+    // ...
+}
+#endif
+----
+[.fragment]
+<1> 类型参数 `TYPE`
+<2> 实例化函数
+
+=== 泛型容器 & 宏
+[source,cpp]
+----
+// main.cpp
+#define INSTANCE
+
+#define TYPE int // <1>
+#include "collection.h"
+#undef TYPE
+
+#define TYPE string // <1>
+#include "collection.h"
+#undef TYPE
+
+int main() {
+    Collection_int lstInt = make_Collection_int(5); // <2>
+    Collection_double lstDouble = make_Collection_double(5);
+}
+----
+[.fragment]
+<1> 实例化类型 `Collection<int>`, `Collection<string>`
+<2> 实例化成员函数
+
+=== 泛型容器 & 模板
+[source,cpp]
+----
+// collection.h
+template <typename T> // <1>
+class Collection {
+    T* array;
+    size_t size, n;
+public:
+    Collection(size_t sz) {
+        // ...
+    }
+};
+
+// main.cpp
+int main() {
+    Collection<int> lstInt(5); // <2>
+    Collection<double> lstDouble(5); // <2>
+}
+----
+[.fragment]
+<1> 模板参数 `T`
+<2> 实例化类型 `Collection<int>`, `Collection<double>`
+
+== 零成本抽象
+[quote, Bjarne Stroustrup, 'http://www.stroustrup.com/ETAPS-corrected-draft.pdf[Foundations of C++]']
+____
+C++ implementations obey the zero-overhead principle:
+What you don’t use, you don’t pay for. And further: What you do use, you couldn’t hand code any better.
+____
 
 [.notes]
 --
-* tell anecdote
-* make a point
+C++特性引进原则，得遵守不会带来额外开销，不论时间上还是空间上，都比程序猿自己实现类似的特性要好（至少不差）
+
+然而RTTI和异常违背了这个原则，所以编译器都有开关关掉这特性。
 --
+
+== 元编程 & Metaprogramming
+
+[%step]
+* 编译器解析执行代码，并 *生成* 代码、数据
+* 将运行时逻辑挪到编译时计算，实现零成本抽象
+* 运行时拥有改变结构的能力，动静结合
+
+=== 元编程 & 流派
+[%step]
+* https://www.youtube.com/watch?v=PJwd4JLYJJY[Constexpr all the things!]
+* 模板元编程
+* 两者结合
+
+=== Constexpr all the things!
+image::constexpr-all-the-things.png[80%,80%]
+
+[.notes]
+--
+constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后，就能增加使用面了，降低门槛。
+--
+
+=== 模板元编程
+[.fragment]
+运行时交互::
+* 数值
+* 对象
+
+[.fragment]
+编译时计算::
+* 数值
+* 类型
+* 对象 (C++20)
+
+=== 模板元编程
+函数式编程范式
+
+[%step]
+* 无副作用纯函数
+* 延迟计算
+* 模式匹配
+
+[.columns]
+=== 模板元编程
+
+[.column]
+--
+计算Fibonacci数列
+// [.fragment]
+[source,cpp]
+----
+template <size_t N> // <1>
+struct Fibonacci { // <2>
+    constexpr static size_t value = // <3>
+        Fibonacci<N - 1>::value +
+        Fibonacci<N - 2>::value;
+};
+
+template <>
+struct Fibonacci<0> { // <4>
+    constexpr static size_t value = 0;
+};
+
+template <>
+struct Fibonacci<1> { // <4>
+    constexpr static size_t value = 1;
+}
+----
+--
+
+[.column.is-one-third]
+--
+// [.fragment]
+<1> 模板函数输入参数N
+<2> 模板函数名 `Fibonacci`
+<3> 模板函数返回值
+<4> 模式匹配，函数递归的边界条件
+--
+
