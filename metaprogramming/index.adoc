@@ -1,6 +1,6 @@
 = C++模板元编程
-:customcss: presentation.css
-:revealjsdir: https://cdn.jsdelivr.net/npm/reveal.js@3.9.2
+:customcss: ../presentation.css
+:revealjsdir: ../node_modules/reveal.js
 :revealjs_theme: serif
 :highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/atom-one-light.css
 :highlightjs-languages: cpp
