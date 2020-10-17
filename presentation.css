@@ -2,38 +2,53 @@
     text-transform: none;
 }
 
+.preamble .subtitle {
+    font-size: 30pt;
+}
+
 .reveal .red {
-    color: #ff0000;
+    color: red;
+}
+
+.reveal .blue {
+    color: blue;
+}
+
+.reveal .orange {
+    color: orange;
 }
 
 .reveal h1 {
   text-shadow: none;
-  font-size: 2.5em;
+  font-size: 70pt;
 }
 
 .reveal h2 {
-  font-size: 1.6em;
+  font-size: 40pt;
 }
 
 .reveal h3 {
-  font-size: 1.3em;
+  font-size: 30pt;
 }
 
 .reveal h4 {
-  font-size: 1em;
+  font-size: 25pt;
 }
 
 /* condensed callouts */
 .reveal .colist {
-  font-size: 20px;
-  margin: 10px;
+  font-size: 15pt;
 }
 
 .colist td:not([class]):first-child {
-    padding: .4em .75em 0;
+    padding: .0em .2em 0 0;
     line-height: normal;
     vertical-align: top;
     width: 20px;
+}
+
+.colist td:not([class]):last-child {
+    padding: 0;
 }
 
 .colist table {
@@ -58,16 +73,16 @@
 
 /* Inline code */
 .reveal code {
-  border-radius: 5px;
-  padding: 1px 7px;
-  border: 1px solid rgba(255,255,255,.4);
-  background: #745d4840;
-  font-size: .8em;
-  white-space: nowrap;
+    border-radius: 5px;
+    padding: 1px 7px;
+    border: 1px solid rgb(162 142 142 / 0.8);
+    background: #96402124;
+    font-size: .8em;
+    white-space: nowrap;
 }
 
 .reveal pre {
-	width: 95%;
+	width: 100%;
 	margin: 10px auto;
 }
 
@@ -100,7 +115,7 @@
 }
 
 .reveal .attribution {
-    font-size: 24px;
+    font-size: 18pt;
     text-align: right;
 }
 
@@ -112,15 +127,43 @@
     text-align: center;
 }
 
+section .content {
+    padding-right: 1%;
+}
+
 section .paragraph {
-    font-size: 25px;
+    font-size: 20pt;
 }
 
 section .dlist {
-    font-size: 24px;
+    font-size: 18pt;
 }
 
 section .ulist {
-    font-size: 24px;
+    font-size: 18pt;
 }
 
+.columns .slide-content > .column {
+    display: block;
+    flex-basis: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 0;
+}
+
+.admonitionblock table {
+    border: 0;
+}
+
+.admonitionblock .content {
+    font-size: 14pt;
+}
+
+.fa.fa-lightbulb-o:before {
+    content: "\f0eb";
+    color: #a75a42;
+}
+
+.reveal table tbody tr:last-child th, .reveal table tbody tr:last-child td {
+    padding: .4em .2em 0 0;
+}

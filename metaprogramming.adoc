@@ -7,9 +7,10 @@
 :source-highlighter: highlightjs
 :revealjs_history: true
 :icons: font
+:stem:
 罗能 {docdate} @Shanghai
 
-template <typename 😀>
+[subtitle]#template <typename 😀>#
 
 == 模板介绍
 
@@ -179,17 +180,26 @@ image::constexpr-all-the-things.png[80%,80%]
 constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后，就能增加使用面了，降低门槛。
 --
 
+[.columns]
 === 模板元编程
-[.fragment]
-运行时交互::
+[.column]
+--
+运行时交互
+
+[%step]
 * 数值
 * 对象
+--
 
-[.fragment]
-编译时计算::
+[.column]
+--
+编译时计算
+
+[%step]
 * 数值
 * 类型
 * 对象 (C++20)
+--
 
 === 模板元编程
 函数式编程范式
@@ -200,39 +210,100 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 * 模式匹配
 
 [.columns]
-=== 模板元编程
-
+=== 模板元编程：数值计算
 [.column]
 --
-计算Fibonacci数列
-// [.fragment]
+计算Fibonacci数列: stem:[f(n) = f(n-1) + f(n-2)]
+[.fragment]
 [source,cpp]
 ----
 template <size_t N> // <1>
-struct Fibonacci { // <2>
+struct Fibonacci {  // <2>
     constexpr static size_t value = // <3>
         Fibonacci<N - 1>::value +
         Fibonacci<N - 2>::value;
 };
 
-template <>
-struct Fibonacci<0> { // <4>
+template <> struct Fibonacci<0> {   // <4>
     constexpr static size_t value = 0;
 };
 
-template <>
-struct Fibonacci<1> { // <4>
+template <> struct Fibonacci<1> {   // <4>
     constexpr static size_t value = 1;
 }
+
+template<size_t N>
+constexpr size_t Fibonacci_v = Fibonacci<N>::value; // <5>
 ----
 --
 
 [.column.is-one-third]
 --
-// [.fragment]
-<1> 模板函数输入参数N
-<2> 模板函数名 `Fibonacci`
-<3> 模板函数返回值
+[.fragment]
+<1> 模板元函数 [.blue]*输入* 参数N
+<2> 模板元函数名 `Fibonacci`
+<3> 模板元函数 [.blue]*输出* 返回值 `value`
 <4> 模式匹配，函数递归的边界条件
+<5> 别名，方便调用
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+Fibonacci<10>::value // 55
+Fibonacci_v<10> // 55
+----
+
+[.fragment]
+TIP: 约定 [.blue]*尖括号* 为模板元函数调用，`value` 作为函数的 [.blue]*返回值*
 --
+
+[.columns]
+=== 模板元编程：类型计算
+[.column]
+--
+计算类型 `T` 的指针类型 `T*`
+[.fragment]
+[source,cpp]
+----
+template <typename T> // <1>
+struct AddPointer {   // <2>
+    using type = T*;  // <3>
+};
+
+template <typename T>
+using AddPointer_t =
+    typename AddPointer<T>::type; // <4>
+----
+--
+
+[.column]
+--
+[.fragment]
+<1> 模板元函数 [.blue]*输入* 类型T
+<2> 模板元函数名
+<3> 模板元函数 [.blue]*输出* 返回类型 `type`
+<4> 别名，方便调用
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+AddPointer<int>::type px = new int{5};
+AddPointer_t<int> px2 = new int{5};
+----
+
+[.fragment]
+TIP: 约定 [.blue]*尖括号* 为模板元函数调用，`type` 作为函数的 [.blue]*返回类型*
+--
+
+=== 模板元编程：基础数据类型
+
+
 

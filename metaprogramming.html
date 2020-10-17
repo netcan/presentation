@@ -139,11 +139,22 @@ td.hdlist1{font-weight:bold;padding-bottom:1.25em}
   flex: none;
   width: 20%;
 }
-</style><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-1/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-1/css/v4-shims.min.css"><!--Printing and PDF exports--><script>var link = document.createElement( 'link' );
+</style><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-1/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-1/css/v4-shims.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+tex2jax: {
+  inlineMath: [["\\(", "\\)"]],
+  displayMath: [["\\[", "\\]"]],
+  ignoreClass: "nostem|nolatexmath"
+},
+asciimath2jax: {
+  delimiters: [["\\$", "\\$"]],
+  ignoreClass: "nostem|noasciimath"
+},
+TeX: { equationNumbers: { autoNumber: "none" } }
+});</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.4.0/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script><!--Printing and PDF exports--><script>var link = document.createElement( 'link' );
 link.rel = 'stylesheet';
 link.type = 'text/css';
 link.href = window.location.search.match( /print-pdf/gi ) ? "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/css/print/pdf.css" : "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/css/print/paper.css";
-document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="presentation.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>C++模板元编程</h1><div class="preamble"><div class="paragraph"><p>template &lt;typename 😀&gt;</p></div></div><p class="author"><small>罗能 2020-10-17 @Shanghai</small></p></section>
+document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="presentation.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>C++模板元编程</h1><div class="preamble"><div class="paragraph"><p><span class="subtitle">template &lt;typename 😀&gt;</span></p></div></div><p class="author"><small>罗能 2020-10-17 @Shanghai</small></p></section>
 <section id="_模板介绍"><h2>模板介绍</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>起初为了支持泛型替代宏而设计的语法</p></li><li class="fragment"><p>类型安全，编译期提前检查错误</p></li><li class="fragment"><p>人们无意中发现可以用于 <strong class="red">编译期</strong> 计算</p></li><li class="fragment"><p>语言标准发展不断完善元编程体验</p></li></ul></div></div></section>
 <section><section id="_泛型算法_宏"><h2>泛型算法 &amp; 宏</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">#define MAX(X, Y) (((X) &gt; (Y)) ? (X) : (Y))
 MAX(a++, b++) // (((a++) &gt; (b++)) ? (a++) : (b++))
@@ -210,26 +221,48 @@ What you don’t use, you don’t pay for. And further: What you do use, you cou
 <aside class="notes"><div class="paragraph"><p>C++特性引进原则，得遵守不会带来额外开销，不论时间上还是空间上，都比程序猿自己实现类似的特性要好（至少不差）</p></div>
 <div class="paragraph"><p>然而RTTI和异常违背了这个原则，所以编译器都有开关关掉这特性。</p></div></aside></div></section>
 <section><section id="_元编程_metaprogramming"><h2>元编程 &amp; Metaprogramming</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>编译器解析执行代码，并 <strong>生成</strong> 代码、数据</p></li><li class="fragment"><p>将运行时逻辑挪到编译时计算，实现零成本抽象</p></li><li class="fragment"><p>运行时拥有改变结构的能力，动静结合</p></li></ul></div></div></section><section id="_元编程_流派"><h2>元编程 &amp; 流派</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p><a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">Constexpr all the things!</a></p></li><li class="fragment"><p>模板元编程</p></li><li class="fragment"><p>两者结合</p></li></ul></div></div></section><section id="_constexpr_all_the_things"><h2>Constexpr all the things!</h2><div class="slide-content"><div class="imageblock" style=""><img src="constexpr-all-the-things.png" alt="80%" width="80%"></div>
-<aside class="notes"><div class="paragraph"><p>constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后，就能增加使用面了，降低门槛。</p></div></aside></div></section><section id="_模板元编程"><h2>模板元编程</h2><div class="slide-content"><div class="dlist fragment"><dl><dt class="hdlist1">运行时交互</dt><dd><div class="ulist"><ul><li><p>数值</p></li><li><p>对象</p></li></ul></div></dd></dl></div>
-<div class="dlist fragment"><dl><dt class="hdlist1">编译时计算</dt><dd><div class="ulist"><ul><li><p>数值</p></li><li><p>类型</p></li><li><p>对象 (C++20)</p></li></ul></div></dd></dl></div></div></section><section id="_模板元编程_2"><h2>模板元编程</h2><div class="slide-content"><div class="paragraph"><p>函数式编程范式</p></div>
-<div class="ulist"><ul><li class="fragment"><p>无副作用纯函数</p></li><li class="fragment"><p>延迟计算</p></li><li class="fragment"><p>模式匹配</p></li></ul></div></div></section><section id="_模板元编程_3" class="columns"><h2>模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>计算Fibonacci数列</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;size_t N&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-struct Fibonacci { <i class="conum" data-value="2"></i><b>(2)</b>
+<aside class="notes"><div class="paragraph"><p>constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后，就能增加使用面了，降低门槛。</p></div></aside></div></section><section id="_模板元编程" class="columns"><h2>模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>运行时交互</p></div>
+<div class="ulist"><ul><li class="fragment"><p>数值</p></li><li class="fragment"><p>对象</p></li></ul></div></div></div>
+<div class="openblock column"><div class="content"><div class="paragraph"><p>编译时计算</p></div>
+<div class="ulist"><ul><li class="fragment"><p>数值</p></li><li class="fragment"><p>类型</p></li><li class="fragment"><p>对象 (C++20)</p></li></ul></div></div></div></div></section><section id="_模板元编程_2"><h2>模板元编程</h2><div class="slide-content"><div class="paragraph"><p>函数式编程范式</p></div>
+<div class="ulist"><ul><li class="fragment"><p>无副作用纯函数</p></li><li class="fragment"><p>延迟计算</p></li><li class="fragment"><p>模式匹配</p></li></ul></div></div></section><section id="_模板元编程数值计算" class="columns"><h2>模板元编程：数值计算</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>计算Fibonacci数列: \$f(n) = f(n-1) + f(n-2)\$</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;size_t N&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+struct Fibonacci {  <i class="conum" data-value="2"></i><b>(2)</b>
     constexpr static size_t value = <i class="conum" data-value="3"></i><b>(3)</b>
         Fibonacci&lt;N - 1&gt;::value +
         Fibonacci&lt;N - 2&gt;::value;
 };
 
-template &lt;&gt;
-struct Fibonacci&lt;0&gt; { <i class="conum" data-value="4"></i><b>(4)</b>
+template &lt;&gt; struct Fibonacci&lt;0&gt; {   <i class="conum" data-value="4"></i><b>(4)</b>
     constexpr static size_t value = 0;
 };
 
-template &lt;&gt;
-struct Fibonacci&lt;1&gt; { <i class="conum" data-value="4"></i><b>(4)</b>
+template &lt;&gt; struct Fibonacci&lt;1&gt; {   <i class="conum" data-value="4"></i><b>(4)</b>
     constexpr static size_t value = 1;
-}</code></pre></div></div></div></div>
-<div class="openblock column is-one-third"><div class="content"><div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模板函数输入参数N</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>模板函数名 <code>Fibonacci</code></td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模板函数返回值</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>模式匹配，函数递归的边界条件</td></tr></table></div></div></div></div></section></section></div></div><script src="https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
+}
+
+template&lt;size_t N&gt;
+constexpr size_t Fibonacci_v = Fibonacci&lt;N&gt;::value; <i class="conum" data-value="5"></i><b>(5)</b></code></pre></div></div></div></div>
+<div class="openblock column is-one-third"><div class="content"><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模板元函数 <strong class="blue">输入</strong> 参数N</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>模板元函数名 <code>Fibonacci</code></td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模板元函数 <strong class="blue">输出</strong> 返回值 <code>value</code></td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>模式匹配，函数递归的边界条件</td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>别名，方便调用</td></tr></table></div>
+<div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如何调用</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">Fibonacci&lt;10&gt;::value // 55
+Fibonacci_v&lt;10&gt; // 55</code></pre></div></div>
+<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">约定 <strong class="blue">尖括号</strong> 为模板元函数调用，<code>value</code> 作为函数的 <strong class="blue">返回值</strong></td></tr></table></div></div></div></div></section><section id="_模板元编程类型计算" class="columns"><h2>模板元编程：类型计算</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>计算类型 <code>T</code> 的指针类型 <code>T*</code></p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename T&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+struct AddPointer {   <i class="conum" data-value="2"></i><b>(2)</b>
+    using type = T*;  <i class="conum" data-value="3"></i><b>(3)</b>
+};
+
+template &lt;typename T&gt;
+using AddPointer_t =
+    typename AddPointer&lt;T&gt;::type; <i class="conum" data-value="4"></i><b>(4)</b></code></pre></div></div></div></div>
+<div class="openblock column"><div class="content"><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模板元函数 <strong class="blue">输入</strong> 类型T</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>模板元函数名</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模板元函数 <strong class="blue">输出</strong> 返回类型 <code>type</code></td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>别名，方便调用</td></tr></table></div>
+<div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如何调用</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">AddPointer&lt;int&gt;::type px = new int{5};
+AddPointer_t&lt;int&gt; px2 = new int{5};</code></pre></div></div>
+<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">约定 <strong class="blue">尖括号</strong> 为模板元函数调用，<code>type</code> 作为函数的 <strong class="blue">返回类型</strong></td></tr></table></div></div></div></div></section><section id="_模板元编程基础数据类型"><h2>模板元编程：基础数据类型</h2></section></section></div></div><script src="https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
   if (!(slide.classList.contains('canvas') || slide.classList.contains('background'))) return;
