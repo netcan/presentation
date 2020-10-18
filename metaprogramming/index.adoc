@@ -346,7 +346,6 @@ struct TypeList {
 [%step]
 * 向TypeList尾部插入一些类型: `append`
 * 类型参数转发: `exportTo`
-* 判断类型是否在TypeList中: `Elem`
 * 高阶函数
 ** `Map`
 ** `Filter`
@@ -411,41 +410,6 @@ icon:question[role="orange"]
 ----
 TypeList<int, char>::exportTo<std::tuple> // std::tuple<int, char>
 TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
-----
-
-=== Elem
-判断类型是否在TypeList中
-[.fragment]
-[source,cpp]
-----
-template<typename IN, typename E> // <1>
-struct Elem {
-    constexpr static bool value = false; // <2>
-};
-
-template<typename E, typename ...Ts>
-struct Elem<TypeList<Ts...>, E> {
-    constexpr static bool value = (std::is_same_v<E, Ts> || ...); // <3>
-};
-
-template<typename IN, typename E>
-constexpr bool Elem_v = Elem<IN, E>::value;
-----
-
-[.fragment]
-<1> 输入两个类型参数：IN, E
-<2> 默认认为E不存在于IN中
-<3> 模式匹配，若IN类型为TypeList，则其一个个类型与E匹配
-
-[.fragment]
-icon:question[role="orange"]
-如何调用
-
-[.fragment]
-[source,cpp]
-----
-Elem_v<TypeList<int>, int>; // true
-Elem_v<TypeList<int>, float>; // false
 ----
 
 == 高阶函数
@@ -600,6 +564,7 @@ NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `t
 == TypeList实战
 
 * 连接两个TypeList: `Concat`
+* 判断类型是否在TypeList中: `Elem`
 * TypeList去重: `Unique`
 * 快速排序: `QuickSort`
 * 求图全局最短路径，动静结合
@@ -681,6 +646,68 @@ using Concat_t = typename Concat<IN, IN2>::type;
 [.fragment]
 NOTE: 1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上 +
 2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 `IN::template append`
+
+== Elem
+判断类型是否在TypeList中
+[.fragment]
+[source,cpp]
+----
+template<typename IN, typename E> // <1>
+class Elem {
+    template<typename ACC, typename T>
+    struct FindE: std::conditional_t<ACC::value, ACC, std::is_same<T, E>> {} ; // <2>
+
+    using Found = Fold_t<IN, std::false_type, FindE>; // <3>
+public:
+    static constexpr bool value = Found::value; // <4>
+};
+
+template<typename IN, typename E>
+constexpr bool Elem_v = Elem<IN, E>::value;
+----
+[.fragment]
+<1> 输入两个类型参数：IN TypeList, 待查找类型E
+<2> 定义二元操作FindE，若ACC为真则说明已经找到过，直接返回；否则判断当前类型参数是否与E相等
+<3> [.blue]#Fold# 操作，输入IN TypeList，初值类型为false_type，二元操作FindE
+<4> 从布尔类型得到其值
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+Elem_v<TypeList<int>, int>; // true
+Elem_v<TypeList<int>, float>; // false
+----
+
+=== Elem 2
+icon:question[role="orange"]
+还有没有其他解法
+[.fragment]
+[source,cpp]
+----
+template<typename IN, typename E>
+struct Elem {
+    constexpr static bool value = false; // <1>
+};
+
+template<typename E, typename ...Ts>
+struct Elem<TypeList<Ts...>, E> {
+    constexpr static bool value = (std::is_same_v<E, Ts> || ...); // <2>
+};
+
+template<typename IN, typename E>
+constexpr bool Elem_v = Elem<IN, E>::value;
+----
+
+[.fragment]
+<1> 默认认为E不存在于IN中
+<2> 模式匹配，若IN类型为TypeList，则其一个个类型与E匹配
+
+[.fragment]
+TIP: 得益于C++17的折叠表达式([.blue]#fold# expression)： `(pack op ... )`，使这种方式可行
 
 == Unique
 对TypeList去重操作
@@ -1022,7 +1049,7 @@ class PathFinder<CURR_NODE, TARGET, PATH,
             ((ACC::size > Path::size) && Path::size > 0)), Path, ACC> {};
 public:
     // path = min(path, cur_path)
-    using type = FoldL_t<AllPaths, TypeList<>, MinPath>; // <5>
+    using type = Fold_t<AllPaths, TypeList<>, MinPath>; // <5>
 };
 ----
 
@@ -1073,10 +1100,10 @@ class CrossProduct {
     struct OuterAppend {
         template<typename RESULT_INNER, typename TB> // <2>
         struct InnerAppend: RESULT_INNER::template append<PAIR<TA, TB>> { };
-        using type = FoldL_t<B, RESULT_OUTTER, InnerAppend>;
+        using type = Fold_t<B, RESULT_OUTTER, InnerAppend>;
     };
 public:
-    using type = FoldL_t<A, TypeList<>, OuterAppend>;
+    using type = Fold_t<A, TypeList<>, OuterAppend>;
 };
 ----
 
