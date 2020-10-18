@@ -269,8 +269,8 @@ Fibonacci_v<10> // 55
 ----
 
 [.fragment]
-TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`value` 作为函数的 [.blue]*返回值*: `F<IN>::value` +
-2. 模板元函数名后缀 `_v` 为其别名: `F_v<IN>`
+TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`value` 作为函数的 [.blue]*返回值* +
+2. 模板元函数名后缀 `_v` 为其别名: `F_v<IN>` ，避免写一长串 `F<IN>::value` 的烦恼
 --
 
 [.columns]
@@ -313,17 +313,17 @@ AddPointer_t<int> px2 = new int{5};
 ----
 
 [.fragment]
-TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`type` 作为函数的 [.blue]*返回类型*: `typename F<IN>::type` +
-2. 模板元函数名后缀 `_t` 为其别名: `F_t<IN>`
+TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`type` 作为函数的 [.blue]*返回类型* +
+2. 模板元函数名后缀 `_t` 为其别名: `F_t<IN>` ，避免了写一长串 `typename F<IN>::type` 的烦恼
 --
 
 == 模板元编程：基础数据类型
 [.fragment]
-复合数据类型：`TypeList`
+复合数据类型：TypeList
 
 [%step]
-* 输入多个 *类型* 参数：`T1, T2, ...`
-* 输出一个 `TypeList` 类型
+* 输入多个 *类型* 参数：T1, T2, ...
+* 输出一个 TypeList 类型
 
 [.fragment]
 [source,cpp]
@@ -336,9 +336,9 @@ struct TypeList {
 ----
 
 [.fragment]
-<1> 输入参数
-<2> 输出类型
-<3> 列表长度
+<1> 输入参数，...Ts [.blue]#模板参数包# 声明，表示接收任意多的类型参数： T1, T2, T3, ...
+<2> 输出类型，Ts... 表示展开 [.blue]#模板参数包#，展开后为T1, T2, T3, ...
+<3> 列表长度，`sizeof...` 操作符求参数包个数
 
 === TypeList
 基本操作
@@ -354,7 +354,7 @@ struct TypeList {
 ** `Fold`
 
 === append
-向TypeList尾部插入一些类型: `append`
+向TypeList尾部插入一些类型
 
 [.fragment]
 [source,cpp]
@@ -377,14 +377,11 @@ icon:question[role="orange"]
 [.fragment]
 [source,cpp]
 ----
-static_assert(
-    std::is_same_v<
-        TypeList<int, char>::append<long>,
-        TypeList<int, char, long>>);
+TypeList<int, char>::append<long, double> // TypeList<int, char, long, double>
 ----
 
 === exportTo
-类型参数转发: `exportTo`
+类型参数转发
 
 [.fragment]
 将 `TypeList<Ts...>` 参数转发至其他模板类，例如转成： `std::tuple<Ts...>`
@@ -418,7 +415,7 @@ TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
 ----
 
 === IsTypeList
-判断当前类型是否为 TypeList: `IsTypeList`
+判断当前类型是否为 TypeList
 
 [.fragment]
 [source,cpp]
@@ -434,14 +431,13 @@ struct IsTypeList<TypeList<Ts...>> { // <3>
 };
 
 template<typename IN>
-constexpr bool IsTypeList_v = IsTypeList<IN>::value; // <4>
+constexpr bool IsTypeList_v = IsTypeList<IN>::value;
 ----
 
 [.fragment]
 <1> 输入类型参数 IN
 <2> 默认认为该类型不是TypeList
 <3> 模式匹配，当类型参数IN和TypeList类型一致时，返回 true
-<4> 别名，方便调用
 
 [.fragment]
 icon:question[role="orange"]
@@ -455,7 +451,7 @@ IsTypeList_v<TypeList<int>>; // true
 ----
 
 === Elem
-判断类型是否在TypeList中: `Elem`
+判断类型是否在TypeList中
 [.fragment]
 [source,cpp]
 ----
@@ -564,22 +560,13 @@ using Map_t = typename Map<IN, F>::type;
 
 [.fragment]
 <1> 输入类型参数 IN 和 元函数 F
-<2> 元函数Map声明
+<2> 声明一个元函数Map
 <3> 模式匹配当IN类型为TypeList时，对其每个 `Ts...` 元素进行元函数调用
 
 [.fragment]
 NOTE: 1. `template <typename> class F` 为元函数声明，表示该函数输入一个类型参数 +
-2. `typename F<Ts>::type` 表示对元函数 F 调用，输入一个类型参数 `Ts`，返回调用后的类型参数 `::type`
-
-[.fragment]
-icon:question[role="orange"]
-如何调用
-
-[.fragment]
-[source,cpp]
-----
-Map_t<TypeList<int*, char*>, std::remove_pointer> // TypeList<int, char>
-----
+2. `typename F<Ts>::type` 表示对元函数 F 调用，输入一个类型参数 `Ts`，返回调用后的类型参数 `::type` +
+3. `typename F<Ts>::type...` 展开后结果为 `typename F<T1>::type, typename F<T2>::type, typename F<T3>::type, ...`
 
 === Filter实现
 [source.column.fragment,cpp]
@@ -609,22 +596,23 @@ using Filter_t = typename Filter<IN, P>::type;
 <4> 对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList
 
 [.fragment]
-NOTE: Filter实现采用了尾递归方式，可能有助于编译器提高编译速度 +
-`P<H>::value` 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 `::value`
+NOTE: 1. Filter实现采用了尾递归方式，可能有助于编译器提高编译速度 +
+2. `P<H>::value` 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 `::value` +
+3. 对 OUT TypeList进行append参数 H，因为 `append` 也是个模板元函数，嵌套于类TypeList中，需要写成 `typename OUT::template append<H>` ，可以看成是 `out.append(h)` 形式
 
 === Fold实现
 [source.column.fragment,cpp]
 ----
 template<typename IN, typename INIT, template<typename, typename> class OP> // <1>
-struct FoldL { using type = INIT; }; <2>
+struct Fold { using type = INIT; }; <2>
 
 template<typename IN, typename INIT, template<typename, typename> class OP>
-using FoldL_t = typename FoldL<IN, INIT, OP>::type;
+using Fold_t = typename Fold<IN, INIT, OP>::type;
 
 template<typename ACC, template<typename, typename> class OP,
     typename H, typename ...Ts>
-struct FoldL<TypeList<H, Ts...>, ACC, OP> {
-    using type = FoldL_t<TypeList<Ts...>, typename OP<ACC, H>::type, OP>; // <3>
+struct Fold<TypeList<H, Ts...>, ACC, OP> {
+    using type = Fold_t<TypeList<Ts...>, typename OP<ACC, H>::type, OP>; // <3>
 };
 ----
 
@@ -636,3 +624,95 @@ struct FoldL<TypeList<H, Ts...>, ACC, OP> {
 [.fragment]
 NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `typename` 说明该函数输入两个类型参数 +
 2. `typename OP<ACC, H>::type` 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 `::type`
+
+== TypeList实战
+
+* 连接两个TypeList: `Concat`
+* 快速排序: `QuickSort`
+* 求图全局最短路径，动静结合
+
+== Concat
+连接两个TypeList: `Concat`
+
+[.fragment]
+[source,cpp]
+----
+template<typename IN, typename IN2> // <1>
+class Concat {
+    template<typename ACC, typename E> // <2>
+    struct Append {
+        using type = typename ACC::template append<E>;
+    };
+public:
+    using type = Fold_t<IN2, IN, Append>; // <3>
+};
+
+template<typename IN, typename IN2>
+using Concat_t = typename Concat<IN, IN2>::type;
+----
+
+[.fragment]
+<1> 输入两个TypeList: IN, IN2
+<2> Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 `append` 元函数
+<3> Fold 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用
+
+
+[.fragment]
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+Concat_t<TypeList<int, char>, TypeList<float>> // TypeList<int, char, float>
+----
+
+=== Concat 2
+icon:question[role="orange"]
+有没有其他解法
+
+[.fragment]
+[source,cpp]
+----
+template<typename IN, typename IN2>
+struct Concat;
+
+template<typename ...Ts, typename ...Ts2>
+struct Concat<TypeList<Ts...>, TypeList<Ts2...>> { // <1>
+    using type = TypeList<Ts..., Ts2...>; // <2>
+};
+
+template<typename IN, typename IN2>
+using Concat_t = typename Concat<IN, IN2>::type;
+----
+
+[.fragment]
+<1> 模式匹配两个TypeList，得到各自模板参数包 Ts, Ts2
+<2> 结果为两个TypeList的参数包都展开后放到一起
+
+=== Concat 3
+icon:question[role="orange"]
+还有没有其他解法
+
+[.fragment]
+[source,cpp]
+----
+template<typename IN, typename IN2>
+struct Concat {
+    using type = typename IN2::template exportTo<IN::template append>; // <1>
+};
+
+template<typename IN, typename IN2>
+using Concat_t = typename Concat<IN, IN2>::type;
+----
+
+[.fragment]
+<1> 使用参数转发函数exportTo，将IN2的参数转发到IN的append函数上去
+
+[.fragment]
+NOTE: 1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上 +
+2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 `IN::template append`
+
+== QuickSort
+
+

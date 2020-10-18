@@ -249,8 +249,8 @@ constexpr size_t Fibonacci_v = Fibonacci&lt;N&gt;::value; <i class="conum" data-
 如何调用</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">Fibonacci&lt;10&gt;::value // 55
 Fibonacci_v&lt;10&gt; // 55</code></pre></div></div>
-<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">1. 约定 <strong class="blue">尖括号</strong> 为模板元函数F调用，<code>value</code> 作为函数的 <strong class="blue">返回值</strong>: <code>F&lt;IN&gt;::value</code><br>
-2. 模板元函数名后缀 <code>_v</code> 为其别名: <code>F_v&lt;IN&gt;</code></td></tr></table></div></div></div></div></section><section id="_模板元编程类型计算" class="columns"><h2>模板元编程：类型计算</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>计算类型 <code>T</code> 的指针类型 <code>T*</code></p></div>
+<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">1. 约定 <strong class="blue">尖括号</strong> 为模板元函数F调用，<code>value</code> 作为函数的 <strong class="blue">返回值</strong><br>
+2. 模板元函数名后缀 <code>_v</code> 为其别名: <code>F_v&lt;IN&gt;</code> ，避免写一长串 <code>F&lt;IN&gt;::value</code> 的烦恼</td></tr></table></div></div></div></div></section><section id="_模板元编程类型计算" class="columns"><h2>模板元编程：类型计算</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>计算类型 <code>T</code> 的指针类型 <code>T*</code></p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename T&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct AddPointer {   <i class="conum" data-value="2"></i><b>(2)</b>
     using type = T*;  <i class="conum" data-value="3"></i><b>(3)</b>
@@ -265,14 +265,14 @@ using AddPointer_t =
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">typename AddPointer&lt;int&gt;::type px =
     new int{5};
 AddPointer_t&lt;int&gt; px2 = new int{5};</code></pre></div></div>
-<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">1. 约定 <strong class="blue">尖括号</strong> 为模板元函数F调用，<code>type</code> 作为函数的 <strong class="blue">返回类型</strong>: <code>typename F&lt;IN&gt;::type</code><br>
-2. 模板元函数名后缀 <code>_t</code> 为其别名: <code>F_t&lt;IN&gt;</code></td></tr></table></div></div></div></div></section></section>
-<section><section id="_模板元编程基础数据类型"><h2>模板元编程：基础数据类型</h2><div class="slide-content"><div class="paragraph fragment"><p>复合数据类型：<code>TypeList</code></p></div><div class="ulist"><ul><li class="fragment"><p>输入多个 <strong>类型</strong> 参数：<code>T1, T2, &#8230;&#8203;</code></p></li><li class="fragment"><p>输出一个 <code>TypeList</code> 类型</p></li></ul></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename ...Ts&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">1. 约定 <strong class="blue">尖括号</strong> 为模板元函数F调用，<code>type</code> 作为函数的 <strong class="blue">返回类型</strong><br>
+2. 模板元函数名后缀 <code>_t</code> 为其别名: <code>F_t&lt;IN&gt;</code> ，避免了写一长串 <code>typename F&lt;IN&gt;::type</code> 的烦恼</td></tr></table></div></div></div></div></section></section>
+<section><section id="_模板元编程基础数据类型"><h2>模板元编程：基础数据类型</h2><div class="slide-content"><div class="paragraph fragment"><p>复合数据类型：TypeList</p></div><div class="ulist"><ul><li class="fragment"><p>输入多个 <strong>类型</strong> 参数：T1, T2, &#8230;&#8203;</p></li><li class="fragment"><p>输出一个 TypeList 类型</p></li></ul></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename ...Ts&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct TypeList {
     using type = TypeList&lt;Ts...&gt;; <i class="conum" data-value="2"></i><b>(2)</b>
     constexpr static size_t size = sizeof...(Ts); <i class="conum" data-value="3"></i><b>(3)</b>
-};</code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入参数</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>输出类型</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>列表长度</td></tr></table></div></div></section><section id="_typelist"><h2>TypeList</h2><div class="slide-content"><div class="paragraph"><p>基本操作</p></div>
-<div class="ulist"><ul><li class="fragment"><p>向TypeList尾部插入一些类型: <code>append</code></p></li><li class="fragment"><p>类型参数转发: <code>exportTo</code></p></li><li class="fragment"><p>判断当前类型是否为 TypeList: <code>IsTypeList</code></p></li><li class="fragment"><p>判断类型是否在TypeList中: <code>Elem</code></p></li><li class="fragment"><p>高阶函数</p><div class="ulist"><ul><li><p><code>Map</code></p></li><li><p><code>Filter</code></p></li><li><p><code>Fold</code></p></li></ul></div></li></ul></div></div></section><section id="_append"><h2>append</h2><div class="slide-content"><div class="paragraph"><p>向TypeList尾部插入一些类型: <code>append</code></p></div>
+};</code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入参数，&#8230;&#8203;Ts <span class="blue">模板参数包</span> 声明，表示接收任意多的类型参数： T1, T2, T3, &#8230;&#8203;</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>输出类型，Ts&#8230;&#8203; 表示展开 <span class="blue">模板参数包</span>，展开后为T1, T2, T3, &#8230;&#8203;</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>列表长度，<code>sizeof&#8230;&#8203;</code> 操作符求参数包个数</td></tr></table></div></div></section><section id="_typelist"><h2>TypeList</h2><div class="slide-content"><div class="paragraph"><p>基本操作</p></div>
+<div class="ulist"><ul><li class="fragment"><p>向TypeList尾部插入一些类型: <code>append</code></p></li><li class="fragment"><p>类型参数转发: <code>exportTo</code></p></li><li class="fragment"><p>判断当前类型是否为 TypeList: <code>IsTypeList</code></p></li><li class="fragment"><p>判断类型是否在TypeList中: <code>Elem</code></p></li><li class="fragment"><p>高阶函数</p><div class="ulist"><ul><li><p><code>Map</code></p></li><li><p><code>Filter</code></p></li><li><p><code>Fold</code></p></li></ul></div></li></ul></div></div></section><section id="_append"><h2>append</h2><div class="slide-content"><div class="paragraph"><p>向TypeList尾部插入一些类型</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename ...Ts&gt;
 struct TypeList {
   template &lt;typename ...T&gt; <i class="conum" data-value="1"></i><b>(1)</b>
@@ -281,10 +281,7 @@ struct TypeList {
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入一些需要插入的类型参数 <code>T&#8230;&#8203;</code></td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>输出插入类型之后的TypeList</td></tr></table></div>
 <div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何调用</p></div>
-<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">static_assert(
-    std::is_same_v&lt;
-        TypeList&lt;int, char&gt;::append&lt;long&gt;,
-        TypeList&lt;int, char, long&gt;&gt;);</code></pre></div></div></div></section><section id="_exportto"><h2>exportTo</h2><div class="slide-content"><div class="paragraph"><p>类型参数转发: <code>exportTo</code></p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">TypeList&lt;int, char&gt;::append&lt;long, double&gt; // TypeList&lt;int, char, long, double&gt;</code></pre></div></div></div></section><section id="_exportto"><h2>exportTo</h2><div class="slide-content"><div class="paragraph"><p>类型参数转发</p></div>
 <div class="paragraph fragment"><p>将 <code>TypeList&lt;Ts&#8230;&#8203;&gt;</code> 参数转发至其他模板类，例如转成： <code>std::tuple&lt;Ts&#8230;&#8203;&gt;</code></p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename ...Ts&gt;
 struct TypeList {
@@ -296,7 +293,7 @@ struct TypeList {
 <div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何调用</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">TypeList&lt;int, char&gt;::exportTo&lt;std::tuple&gt; // std::tuple&lt;int, char&gt;
-TypeList&lt;int, char&gt;::exportTo&lt;std::variant&gt; // std::variant&lt;int, char&gt;</code></pre></div></div></div></section><section id="_istypelist"><h2>IsTypeList</h2><div class="slide-content"><div class="paragraph"><p>判断当前类型是否为 TypeList: <code>IsTypeList</code></p></div>
+TypeList&lt;int, char&gt;::exportTo&lt;std::variant&gt; // std::variant&lt;int, char&gt;</code></pre></div></div></div></section><section id="_istypelist"><h2>IsTypeList</h2><div class="slide-content"><div class="paragraph"><p>判断当前类型是否为 TypeList</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct IsTypeList {
     constexpr static bool value = false; <i class="conum" data-value="2"></i><b>(2)</b>
@@ -308,12 +305,12 @@ struct IsTypeList&lt;TypeList&lt;Ts...&gt;&gt; { <i class="conum" data-value="3"
 };
 
 template&lt;typename IN&gt;
-constexpr bool IsTypeList_v = IsTypeList&lt;IN&gt;::value; <i class="conum" data-value="4"></i><b>(4)</b></code></pre></div></div>
-<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认认为该类型不是TypeList</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配，当类型参数IN和TypeList类型一致时，返回 true</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>别名，方便调用</td></tr></table></div>
+constexpr bool IsTypeList_v = IsTypeList&lt;IN&gt;::value;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认认为该类型不是TypeList</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配，当类型参数IN和TypeList类型一致时，返回 true</td></tr></table></div>
 <div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何调用</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">IsTypeList_v&lt;int&gt;; // false
-IsTypeList_v&lt;TypeList&lt;int&gt;&gt;; // true</code></pre></div></div></div></section><section id="_elem"><h2>Elem</h2><div class="slide-content"><div class="paragraph"><p>判断类型是否在TypeList中: <code>Elem</code></p></div>
+IsTypeList_v&lt;TypeList&lt;int&gt;&gt;; // true</code></pre></div></div></div></section><section id="_elem"><h2>Elem</h2><div class="slide-content"><div class="paragraph"><p>判断类型是否在TypeList中</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename E&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Elem {
     static constexpr bool value = false; <i class="conum" data-value="2"></i><b>(2)</b>
@@ -348,12 +345,10 @@ struct Map&lt;TypeList&lt;Ts...&gt;, F&gt; {
 
 template&lt;typename IN, template &lt;typename&gt; class F&gt;
 using Map_t = typename Map&lt;IN, F&gt;::type;</code></pre></div></div>
-<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN 和 元函数 F</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>元函数Map声明</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配当IN类型为TypeList时，对其每个 <code>Ts&#8230;&#8203;</code> 元素进行元函数调用</td></tr></table></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN 和 元函数 F</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>声明一个元函数Map</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配当IN类型为TypeList时，对其每个 <code>Ts&#8230;&#8203;</code> 元素进行元函数调用</td></tr></table></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. <code>template &lt;typename&gt; class F</code> 为元函数声明，表示该函数输入一个类型参数<br>
-2. <code>typename F&lt;Ts&gt;::type</code> 表示对元函数 F 调用，输入一个类型参数 <code>Ts</code>，返回调用后的类型参数 <code>::type</code></td></tr></table></div>
-<div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
-如何调用</p></div>
-<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">Map_t&lt;TypeList&lt;int*, char*&gt;, std::remove_pointer&gt; // TypeList&lt;int, char&gt;</code></pre></div></div></div></section><section id="_filter实现"><h2>Filter实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, template &lt;typename&gt; class P, typename OUT = TypeList&lt;&gt;&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+2. <code>typename F&lt;Ts&gt;::type</code> 表示对元函数 F 调用，输入一个类型参数 <code>Ts</code>，返回调用后的类型参数 <code>::type</code><br>
+3. <code>typename F&lt;Ts&gt;::type&#8230;&#8203;</code> 展开后结果为 <code>typename F&lt;T1&gt;::type, typename F&lt;T2&gt;::type, typename F&lt;T3&gt;::type, &#8230;&#8203;</code></td></tr></table></div></div></section><section id="_filter实现"><h2>Filter实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, template &lt;typename&gt; class P, typename OUT = TypeList&lt;&gt;&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Filter {
     using type = OUT; <i class="conum" data-value="2"></i><b>(2)</b>
 };
@@ -370,21 +365,60 @@ public:
 template&lt;typename IN, template &lt;typename&gt; class P&gt;
 using Filter_t = typename Filter&lt;IN, P&gt;::type;</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN 和 谓词函数 P</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回类型为空 TypeList; 列表为空时递归终止返回当前 OUT TypeList</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配当类型参数 IN 为 <strong>非空</strong> TypeList时，<code>tails</code> 取除了第一个元素后剩下元素组成的TypeList</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList</td></tr></table></div>
-<div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">Filter实现采用了尾递归方式，可能有助于编译器提高编译速度<br>
-<code>P&lt;H&gt;::value</code> 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 <code>::value</code></td></tr></table></div></div></section><section id="_fold实现"><h2>Fold实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-struct FoldL { using type = INIT; }; <i class="conum" data-value="2"></i><b>(2)</b>
+<div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. Filter实现采用了尾递归方式，可能有助于编译器提高编译速度<br>
+2. <code>P&lt;H&gt;::value</code> 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 <code>::value</code><br>
+3. 对 OUT TypeList进行append参数 H，因为 <code>append</code> 也是个模板元函数，嵌套于类TypeList中，需要写成 <code>typename OUT::template append&lt;H&gt;</code> ，可以看成是 <code>out.append(h)</code> 形式</td></tr></table></div></div></section><section id="_fold实现"><h2>Fold实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+struct Fold { using type = INIT; }; <i class="conum" data-value="2"></i><b>(2)</b>
 
 template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt;
-using FoldL_t = typename FoldL&lt;IN, INIT, OP&gt;::type;
+using Fold_t = typename Fold&lt;IN, INIT, OP&gt;::type;
 
 template&lt;typename ACC, template&lt;typename, typename&gt; class OP,
     typename H, typename ...Ts&gt;
-struct FoldL&lt;TypeList&lt;H, Ts...&gt;, ACC, OP&gt; {
-    using type = FoldL_t&lt;TypeList&lt;Ts...&gt;, typename OP&lt;ACC, H&gt;::type, OP&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
+struct Fold&lt;TypeList&lt;H, Ts...&gt;, ACC, OP&gt; {
+    using type = Fold_t&lt;TypeList&lt;Ts...&gt;, typename OP&lt;ACC, H&gt;::type, OP&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
 };</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN，初始类型参数 INIT, 二元函数 OP</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回初值；列表为空时递归终止返回当前 INIT 参数</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>对当前参数 H 执行二元函数 OP, 其返回类型更新 INIT 参数</td></tr></table></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. <code>template &lt;typename, typename&gt; class OP</code> 为元函数声明，两个 <code>typename</code> 说明该函数输入两个类型参数<br>
-2. <code>typename OP&lt;ACC, H&gt;::type</code> 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 <code>::type</code></td></tr></table></div></div></section></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
+2. <code>typename OP&lt;ACC, H&gt;::type</code> 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 <code>::type</code></td></tr></table></div></div></section></section>
+<section id="_typelist实战"><h2>TypeList实战</h2><div class="slide-content"><div class="ulist"><ul><li><p>连接两个TypeList: <code>Concat</code></p></li><li><p>快速排序: <code>QuickSort</code></p></li><li><p>求图全局最短路径，动静结合</p></li></ul></div></div></section>
+<section><section id="_concat"><h2>Concat</h2><div class="slide-content"><div class="paragraph"><p>连接两个TypeList: <code>Concat</code></p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+class Concat {
+    template&lt;typename ACC, typename E&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    struct Append {
+        using type = typename ACC::template append&lt;E&gt;;
+    };
+public:
+    using type = Fold_t&lt;IN2, IN, Append&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
+};
+
+template&lt;typename IN, typename IN2&gt;
+using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入两个TypeList: IN, IN2</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 <code>append</code> 元函数</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>Fold 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用</td></tr></table></div><div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如何调用</p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">Concat_t&lt;TypeList&lt;int, char&gt;, TypeList&lt;float&gt;&gt; // TypeList&lt;int, char, float&gt;</code></pre></div></div></div></section><section id="_concat_2"><h2>Concat 2</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+有没有其他解法</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt;
+struct Concat;
+
+template&lt;typename ...Ts, typename ...Ts2&gt;
+struct Concat&lt;TypeList&lt;Ts...&gt;, TypeList&lt;Ts2...&gt;&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+    using type = TypeList&lt;Ts..., Ts2...&gt;; <i class="conum" data-value="2"></i><b>(2)</b>
+};
+
+template&lt;typename IN, typename IN2&gt;
+using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模式匹配两个TypeList，得到各自模板参数包 Ts, Ts2</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>结果为两个TypeList的参数包都展开后放到一起</td></tr></table></div></div></section><section id="_concat_3"><h2>Concat 3</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+还有没有其他解法</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt;
+struct Concat {
+    using type = typename IN2::template exportTo&lt;IN::template append&gt;; <i class="conum" data-value="1"></i><b>(1)</b>
+};
+
+template&lt;typename IN, typename IN2&gt;
+using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>使用参数转发函数exportTo，将IN2的参数转发到IN的append函数上去</td></tr></table></div>
+<div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上<br>
+2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 <code>IN::template append</code></td></tr></table></div></div></section></section>
+<section id="_quicksort"><h2>QuickSort</h2></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
   if (!(slide.classList.contains('canvas') || slide.classList.contains('background'))) return;
