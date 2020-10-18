@@ -199,7 +199,7 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 
 [.column]
 --
-编译时计算
+编译时计算（常量）
 
 [%step]
 * 数值
@@ -346,7 +346,6 @@ struct TypeList {
 [%step]
 * 向TypeList尾部插入一些类型: `append`
 * 类型参数转发: `exportTo`
-* 判断当前类型是否为 TypeList: `IsTypeList`
 * 判断类型是否在TypeList中: `Elem`
 * 高阶函数
 ** `Map`
@@ -414,42 +413,6 @@ TypeList<int, char>::exportTo<std::tuple> // std::tuple<int, char>
 TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
 ----
 
-=== IsTypeList
-判断当前类型是否为 TypeList
-
-[.fragment]
-[source,cpp]
-----
-template<typename IN> // <1>
-struct IsTypeList {
-    constexpr static bool value = false; // <2>
-};
-
-template<typename ...Ts>
-struct IsTypeList<TypeList<Ts...>> { // <3>
-    constexpr static bool value = true;
-};
-
-template<typename IN>
-constexpr bool IsTypeList_v = IsTypeList<IN>::value;
-----
-
-[.fragment]
-<1> 输入类型参数 IN
-<2> 默认认为该类型不是TypeList
-<3> 模式匹配，当类型参数IN和TypeList类型一致时，返回 true
-
-[.fragment]
-icon:question[role="orange"]
-如何调用
-
-[.fragment]
-[source,cpp]
-----
-IsTypeList_v<int>; // false
-IsTypeList_v<TypeList<int>>; // true
-----
-
 === Elem
 判断类型是否在TypeList中
 [.fragment]
@@ -508,7 +471,6 @@ void sort(RandomIt first, RandomIt last,
 <1> sort为高阶函数，其输入参数为 `comp` 函数
 
 === Map高阶函数
-
 * 输入一个列表和函数 f
 * 输出对列表中的每个元素进行f函数调用后的列表
 
@@ -536,6 +498,22 @@ image::Filter-steps-loillierbe.gif[100%,80%]
 [.fragment]
 image::fold.jpg[]
 --
+
+[.column]
+--
+[.fragment]
+image::fold2.jpg[]
+--
+
+=== Map/Filter/Fold
+[.fragment]
+map([🐂, 🥔, 🐔, 🌽], 烹饪) [.fragment]#=> [🍔, 🍟, 🍗, 🍿]#
+
+[.fragment]
+filter([🍔, 🍟, 🍗, 🍿], 素食) [.fragment]#=> [🍟, 🍿]#
+
+[.fragment]
+fold([🍔, 🍟, 🍗, 🍿], 🍺, 吃) [.fragment]#=> 💩#
 
 == 高阶函数
 [quote, Conor Hoekstra, 'https://github.com/codereport/Talks/raw/master/2020-09-CppCon/SICP/Structure%20and%20Interpretation%20of%20Computer%20Programs%20-%20SICP.pdf[Structure and Interpretation of Computer Programs - SICP]']
@@ -572,18 +550,13 @@ NOTE: 1. `template <typename> class F` 为元函数声明，表示该函数输�
 [source.column.fragment,cpp]
 ----
 template<typename IN, template <typename> class P, typename OUT = TypeList<>> // <1>
-struct Filter {
-    using type = OUT; // <2>
-};
+struct Filter { using type = OUT; }; // <2>
 
 template<template <typename> class P, typename OUT, typename H, typename ...Ts>
-class Filter<TypeList<H, Ts...>, P, OUT> {
-    using tails = TypeList<Ts...>; // <3>
-public:
-    using type = typename std::conditional_t<P<H>::value, // <4>
-          Filter<tails, P, typename OUT::template append<H>>,
-          Filter<tails, P, OUT>>::type;
-};
+struct Filter<TypeList<H, Ts...>, P, OUT>:
+    std::conditional_t<P<H>::value,
+        Filter<TypeList<Ts...>, P, typename OUT::template append<H>>,
+        Filter<TypeList<Ts...>, P, OUT>> { }; // <3>
 
 template<typename IN, template <typename> class P>
 using Filter_t = typename Filter<IN, P>::type;
@@ -592,13 +565,13 @@ using Filter_t = typename Filter<IN, P>::type;
 [.fragment]
 <1> 输入类型参数 IN 和 谓词函数 P
 <2> 默认返回类型为空 TypeList; 列表为空时递归终止返回当前 OUT TypeList
-<3> 模式匹配当类型参数 IN 为 *非空* TypeList时，`tails` 取除了第一个元素后剩下元素组成的TypeList
-<4> 对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList
+<3> 对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList
 
 [.fragment]
 NOTE: 1. Filter实现采用了尾递归方式，可能有助于编译器提高编译速度 +
-2. `P<H>::value` 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 `::value` +
-3. 对 OUT TypeList进行append参数 H，因为 `append` 也是个模板元函数，嵌套于类TypeList中，需要写成 `typename OUT::template append<H>` ，可以看成是 `out.append(h)` 形式
+2. 使用继承方式省去了写 `using type = ...` 的代码 +
+3. `P<H>::value` 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 `::value` +
+4. 对 OUT TypeList进行append参数 H，因为 `append` 也是个模板元函数，内嵌于类TypeList中，需要写成 `typename OUT::template append<H>` ，可以看成是 `out.append(h)` 形式
 
 === Fold实现
 [source.column.fragment,cpp]
@@ -611,9 +584,8 @@ using Fold_t = typename Fold<IN, INIT, OP>::type;
 
 template<typename ACC, template<typename, typename> class OP,
     typename H, typename ...Ts>
-struct Fold<TypeList<H, Ts...>, ACC, OP> {
-    using type = Fold_t<TypeList<Ts...>, typename OP<ACC, H>::type, OP>; // <3>
-};
+struct Fold<TypeList<H, Ts...>, ACC, OP>:
+    Fold<TypeList<Ts...>, typename OP<ACC, H>::type, OP> {}; // <3>
 ----
 
 [.fragment]
@@ -628,6 +600,7 @@ NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `t
 == TypeList实战
 
 * 连接两个TypeList: `Concat`
+* TypeList去重: `Unique`
 * 快速排序: `QuickSort`
 * 求图全局最短路径，动静结合
 
@@ -637,12 +610,10 @@ NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `t
 [.fragment]
 [source,cpp]
 ----
-template<typename IN, typename IN2> // <1>
+template<typename IN, typename IN2>    // <1>
 class Concat {
     template<typename ACC, typename E> // <2>
-    struct Append {
-        using type = typename ACC::template append<E>;
-    };
+    struct Append: ACC::template append<E> { };
 public:
     using type = Fold_t<IN2, IN, Append>; // <3>
 };
@@ -653,8 +624,8 @@ using Concat_t = typename Concat<IN, IN2>::type;
 
 [.fragment]
 <1> 输入两个TypeList: IN, IN2
-<2> Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 `append` 元函数
-<3> Fold 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用
+<2> 定义 Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 `append` 元函数
+<3> [.blue]#Fold# 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用
 
 
 [.fragment]
@@ -698,9 +669,7 @@ icon:question[role="orange"]
 [source,cpp]
 ----
 template<typename IN, typename IN2>
-struct Concat {
-    using type = typename IN2::template exportTo<IN::template append>; // <1>
-};
+struct Concat: IN2::template exportTo<IN::template append> { }; // <1>
 
 template<typename IN, typename IN2>
 using Concat_t = typename Concat<IN, IN2>::type;
@@ -712,6 +681,31 @@ using Concat_t = typename Concat<IN, IN2>::type;
 [.fragment]
 NOTE: 1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上 +
 2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 `IN::template append`
+
+== Unique
+对TypeList去重操作
+
+[.fragment]
+[source,cpp]
+----
+template<typename IN> // <1>
+class Unique {
+    template<typename ACC, typename E>                // <2>
+    struct Append: std::conditional_t<Elem_v<ACC, E>, // <3>
+        ACC, typename ACC::template append<E>> {};
+public:
+    using type = Fold_t<IN, TypeList<>, Append>;      // <4>
+};
+
+template<typename IN>
+using Unique_t = typename Unique<IN>::type;
+----
+
+[.fragment]
+<1> 输入待去重的IN TypeList
+<2> 定义二元操作Append，输入ACC TypeList和待插入类型参数E
+<3> 当前仅当E不存在于ACC中插入列表
+<4> [.blue]#Fold# 高阶函数调用，输入待去重的IN TypeList，初值空表，二元操作 Append，对IN TypeList的每个元素进行 Append 调用
 
 == QuickSort
 [%step]
@@ -755,7 +749,7 @@ public:
 <1> 输入一个IN TypeList，比较元函数CMP
 <2> 默认返回空列表
 <3> 定义两个元函数LT/GT，用于得到和PIVIOT比较结果
-<4> Filter操作得到左右两个表，对两个表进行递归QuickSort操作
+<4> [.blue]#Filter# 操作得到左右两个表，对两个表进行递归QuickSort操作
 <5> 连接成表得到最终有序表
 
 === QuickSort
@@ -786,7 +780,7 @@ image::find_shortest_path.png[]
 - A->D最短路径其实是A->C->D
 - D->E不可达
 
-=== 全局最短路径
+=== 伪代码
 任意给定两个点，采用深度优先搜索，伪代码如下
 
 [.fragment]
@@ -808,5 +802,439 @@ def find_shortest_path(from, to, path = []):         // <1>
     从邻接边表得到邻接点表v [.fragment.blue]#Map操作#
 <5> 更新当前路径curr_path
 <6> 求出最短非空路径 [.fragment.blue]#Fold操作#
+
+=== 用户界面
+
+[.fragment]
+[source,cpp]
+----
+template<char ID>
+struct Node { constexpr static char id = ID; };
+using A = Node<'A'>;
+using B = Node<'B'>;
+using C = Node<'C'>;
+using D = Node<'D'>;
+using E = Node<'E'>;
+
+using g = Graph< // <1>
+    link(node(A) -> node(B) -> node(C) -> node(D)),
+    link(node(A) -> node(C)),  // test shortest path: A -> C -> D
+    link(node(B) -> node(A)),  // test cycle
+    link(node(A) -> node(E))>; // test D -> E unreachable
+
+static_assert(g::getPath('A', 'D').sz == 3);    // compile-time test // <2>
+auto path = g::getPath(argv[1][0], argv[2][0]); // runtime test      // <2>
+std::cout << " path size: " << path.sz << std::endl;
+----
+
+[.fragment]
+<1> 用户构造边集，返回Graph对象
+<2> Graph对象生成的getPath接口既能用于编译时，也能运行时
+
+=== 构造边集
+
+[.fragment]
+[source,cpp]
+----
+using g = Graph< // <1>
+    link(node(A) -> node(B) -> node(C) -> node(D)),
+    link(node(A) -> node(C)),  // test shortest path: A -> C -> D
+    link(node(B) -> node(A)),  // test cycle
+    link(node(A) -> node(E))>; // test D -> E unreachable
+----
+
+icon:angle-double-down[role="icon-center fragment"]
+
+[.fragment]
+[source,cpp]
+----
+using g = Graph<
+    auto(*)(A) -> auto(*)(B) -> auto(*)(C) -> auto(*)(D) -> void,
+    auto(*)(A) -> auto(*)(C) -> void,
+    auto(*)(B) -> auto(*)(A) -> void,
+    auto(*)(A) -> auto(*)(E) -> void>;
+----
+
+[.fragment]
+TIP: `auto(*)(A) -> B` 声明一个函数指针类型，为 [.blue]#后置返回类型# 写法，通过在前面声明 `auto` ，这样返回类型就可以通过箭头->写到后面
+
+[.fragment]
+NOTE: 1. 为了更好描述图，正好用上 [.blue]#后置返回类型# 中的箭头符号 +
+2. 由于函数可以返回一个函数，所以可以串起来，达到链 `auto(\*)(A) -> auto(*)(B) -> auto(\*)\(C) -> auto(*)(D) -> void` 效果 +
+3. 约定链条最后用 `void` 表示结束
+
+=== 边结构
+[.fragment]
+[source,cpp]
+----
+template<typename F, typename T>
+struct Edge {
+    using From = F;
+    using To = T;
+};
+----
+
+[.fragment]
+基础操作
+
+[.fragment]
+[source,cpp]
+----
+template<typename Node = void>
+struct EdgeTrait {
+    template<typename Edge> struct IsFrom // <1>
+    { constexpr static bool value = std::is_same_v<typename Edge::From, Node>; };
+    template<typename Edge> struct IsTo   // <1>
+    { constexpr static bool value = std::is_same_v<typename Edge::To, Node>; };
+    template<typename Edge> // <2>
+    struct GetFrom { using type = typename Edge::From; };
+    template<typename Edge> // <2>
+    struct GetTo { using type = typename Edge::To; };
+};
+----
+
+[.fragment]
+<1> 输入一个节点Node，一条边Edge，输出该节点是否为Edge的源From、目的点To
+<2> 输入一条边Edge，输出它的源From、目的点To
+
+[.fragment]
+TIP: 约定用 Trait 后缀表明为一组类型的属性、动作
+
+=== 解构链Chain
+icon:question[role="orange"]
+链 `auto(\*)(A) -> auto(*)(B) -> auto(\*)\(C) -> auto(*)(D) -> void` +
+icon:angle-double-down[role="icon-center"]
+Edge边表 `TypeList<Edge<A, B>, Edge<B, C>, Edge<C, D>>`
+
+[.fragment]
+定义一个解构函数Chain，输入链，输出Edge表
+
+[.fragment]
+[source,cpp]
+----
+template<typename T, typename OUT = TypeList<>>
+struct Chain;
+
+template<typename F, typename OUT>
+struct Chain<auto(*)(F) -> void, OUT> {
+    using From = F;
+    using type = OUT; // <1>
+};
+
+template<typename F, typename T, typename OUT>
+struct Chain<auto(*)(F) -> T, OUT> {
+private:
+    using To = typename Chain<T, OUT>::From;
+public:
+    using From = F;
+    using type = typename Chain<T,
+          typename OUT::template append<Edge<From, To>>>::type; // <2>
+};
+----
+
+[.fragment]
+<1> 递归边界情况，当遇到链尾 `void` ，返回当前边表
+<2> 常规情况，不断构造Edge边，存到边表OUT TypeList中
+
+=== 获得边集
+
+[.fragment]
+[source,cpp]
+----
+template<typename... Chains> // <1>
+class Graph {
+    using Edges = Fold_t<    // <2>
+        TypeList<typename Chain<Chains>::type...>,
+        TypeList<>,
+        Concat>;
+    ...
+};
+----
+
+[.fragment]
+<1> 用户输入链条集
+<2> Chain元函数解构每一条链条得到边表的集合，通过 [.blue]#Fold# 操作展开得到边集
+
+=== 两点间最短路径
+元函数PathFinder声明如下
+[.fragment]
+[source,cpp]
+----
+// def find_shortest_path(from, to, path = []):
+template<typename FROM, typename TARGET,         // <1>
+    typename PATH = TypeList<>, typename = void> // <2>
+struct PathFinder;
+----
+
+[.fragment]
+<1> 输入两个点FROM，TARGET，输出他们之间最短路径
+<2> PATH路径用于判断是否遇到了环；第四个参数用于模式匹配中的条件判断
+
+[.fragment]
+NOTE: 有时候 `typename Cond = void` 对类型参数名 `Cond` 不关注时，可以写成 `typename = void`
+
+=== 两点间最短路径
+[.fragment]
+[source,cpp]
+----
+// if from == to: return path # reach target
+template<typename TARGET, typename PATH>
+struct PathFinder<TARGET, TARGET, PATH>: // <1>
+    PATH::template append<TARGET> { };   // <2>
+----
+
+[.fragment]
+<1> 模式匹配，当FROM == TARGET时，到达终点
+<2> 返回最短路径
+
+[.fragment]
+[source,cpp]
+----
+// if from in path: return []   # find cycle
+template<typename CURR_NODE, typename TARGET, typename PATH>
+struct PathFinder<CURR_NODE, TARGET, PATH,
+    std::enable_if_t<Elem_v<PATH, CURR_NODE>>>: // <1>
+    TypeList<> {}; // return empty path // <2>
+----
+
+[.fragment]
+<1> 模式匹配，当CURR_NODE出现在当前路径中，说明遇到了环
+<2> 返回空路径
+
+=== 两点间最短路径
+[.fragment]
+[source,cpp]
+----
+template<typename CURR_NODE, typename TARGET, typename PATH>
+class PathFinder<CURR_NODE, TARGET, PATH,
+    std::enable_if_t<! std::is_same_v<CURR_NODE, TARGET>
+        && !Elem_v<PATH, CURR_NODE>>> { // <1>
+    using EdgesFrom = Filter_t<Edges, EdgeTrait<CURR_NODE>::template IsFrom>; // <2>
+    // for each (from, v) in edges: # expand next nodes
+    using NextNodes = Map_t<EdgesFrom, EdgeTrait<>::GetTo>; // <3>
+    // cur_path = from + find_shortest_path(v, to)
+    template<typename NEXT_NODE>
+    struct GetPath: PathFinder<NEXT_NODE, TARGET,
+        typename PATH::template append<CURR_NODE>> {};
+    using AllPaths = Map_t<NextNodes, GetPath>; // <4>
+    template<typename ACC, typename Path> struct MinPath:
+        std::conditional_t<(ACC::size == 0 ||
+            ((ACC::size > Path::size) && Path::size > 0)), Path, ACC> {};
+public:
+    // path = min(path, cur_path)
+    using type = FoldL_t<AllPaths, TypeList<>, MinPath>; // <5>
+};
+----
+
+[.fragment]
+<1> 模式匹配，当前仅当当前CURR_NODE节点不是终点TARGET，并且不是环时
+<2> [.blue]#Filter# 操作，从边集Edges找出邻接CURR_NODE边
+<3> [.blue]#Map# 操作，对边表每一条边进行GetTo操作，获取CURR_NODE邻接点表
+<4> [.blue]#Map# 操作，对每个邻接点做为起点进行递归求最短路径集
+<5> [.blue]#Fold# 操作，对每条可行路径，找出最短的那条作为最短路径
+
+=== 动静结合
+icon:question[role="orange"]
+运行时如何求最短路径
+
+[%step]
+- 编译期生成所有节点间的最短路径
+- 提供接口供运行时查表，输入起点、终点，查出最短路径
+
+[.fragment]
+icon:question[role="orange"]
+如何得到所有节点间的组合
+
+[.fragment]
+对边集的起点表和邻接点表做笛卡尔积！
+
+[.fragment.icon-center]#{A->B, B->C}#
+icon:angle-double-down[role="icon-center fragment"]
+[.fragment.icon-center]#{A, B} x {B, C}#
+icon:angle-double-down[role="icon-center fragment"]
+[.fragment.icon-center]#{(A, B), (A, C), (B, B), (B, C)}#
+
+=== 笛卡尔积
+输入两个列表，对两个列表中的元素两两组合得到序对表
+
+[.fragment]
+[source,cpp]
+----
+template<typename A, typename B,
+    template<typename, typename> class PAIR>
+struct CrossProduct;
+
+template<typename A, typename B, template<typename, typename> class PAIR>
+using CrossProduct_t = typename CrossProduct<A, B, PAIR>::type;
+
+template<typename A, typename B, template<typename, typename> class PAIR>
+class CrossProduct {
+    template<typename RESULT_OUTTER, typename TA>    // <1>
+    struct OuterAppend {
+        template<typename RESULT_INNER, typename TB> // <2>
+        struct InnerAppend: RESULT_INNER::template append<PAIR<TA, TB>> { };
+        using type = FoldL_t<B, RESULT_OUTTER, InnerAppend>;
+    };
+public:
+    using type = FoldL_t<A, TypeList<>, OuterAppend>;
+};
+----
+
+[.fragment]
+<1> 外层循环，得到类型参数TA
+<2> 内层循环，得到类型参数TB，两两组合成序对PAIR<TA, TB>，放到RESULT表中
+
+=== 路径存储
+枚举出所有节点间的组合情况
+
+[.fragment]
+[source,cpp]
+----
+using AllPairs = CrossProduct_t<
+    Unique_t<Map_t<Edges, EdgeTrait<>::GetFrom>>,
+    Unique_t<Map_t<Edges, EdgeTrait<>::GetTo>>,
+    std::pair>;
+----
+
+[.fragment]
+路径数据结构
+[.fragment]
+[source,cpp]
+----
+template<typename NODE_TYPE>
+struct Path {
+    const NODE_TYPE* path;
+    size_t sz;
+};
+
+template<typename NODE, typename... NODEs>
+class PathStorage { // <1>
+    using NODE_TYPE = std::decay_t<decltype(NODE::id)>;
+    constexpr static NODE_TYPE pathStorage[] { NODE::id, NODEs::id... };
+public:
+    constexpr static Path<NODE_TYPE> path {
+        .path = pathStorage,
+        .sz   = sizeof...(NODEs) + 1,
+    };
+};
+----
+
+[.fragment]
+<1> PathStorage<A, B, C>::path 存储 A->C 之间最短路径
+
+=== 最短路径表
+我们期望编译期生成如下表，供运行时查询
+
+[.fragment]
+[%autowidth, frame=none]
+|===
+|FROM|DST|MinPath
+|A|B|PathStorage<A, B>::path
+|A|C|PathStorage<A, C>::path
+|A|D|PathStorage<A, C, D>::path
+|A|A|PathStorage<A>::path
+|A|E|PathStorage<A, E>::path
+|===
+
+[.fragment]
+表项数据结构：PATH_PAIR: `std::pair<PAIR, PATH>` => `std::pair<std::pair<FROM, DST>, PATH>`
+
+=== 生成路径
+输入两节点序对PAIR，输出PATH_PAIR，[.blue]#Map# 操作
+
+[.fragment]
+[source,cpp]
+----
+template<typename PAIR>
+struct GetPath {
+    using type = std::pair<PAIR,
+        typename PathFinder<typename PAIR::first_type,
+                            typename PAIR::second_type>::type>;
+};
+
+using AllPaths = Map_t<AllPairs, GetPath>;
+----
+
+[.fragment]
+删除空路径项，[.blue]#Filter# 操作
+
+[.fragment]
+[source,cpp]
+----
+template<typename PATH_PAIR>
+struct IsNonEmptyPath {
+    constexpr static bool value = (PATH_PAIR::second_type::size > 0);
+};
+
+using AllNonEmptyPaths = Filter_t<AllPaths, IsNonEmptyPath>;
+----
+
+=== 生成数据表项
+[.blue]#Map# 操作
+
+[.fragment]
+[source,cpp]
+----
+template<typename PATH_PAIR>
+struct SavePath {
+    using type = std::pair<typename PATH_PAIR::first_type,
+            typename PATH_PAIR::second_type::template exportTo<PathStorage>>; // <1>
+};
+
+using SavedPaths = Map_t<AllNonEmptyPaths, SavePath>;
+----
+
+[.fragment]
+<1> 路径数据转发至 PathStorage 类，触发存储
+
+=== 生成编译时、运行时接口
+[.fragment]
+[source,cpp]
+----
+template<typename NODE_TYPE, typename FROM, typename TARGET, typename PATH>
+constexpr static bool matchPath(NODE_TYPE from, NODE_TYPE to,
+        Path<NODE_TYPE>& result, std::pair<std::pair<FROM, TARGET>, PATH>) {
+    if (FROM::id == from && TARGET::id == to) { // <1>
+        result = PATH::path;                    // <1>
+        return true;
+    }
+    return false;
+}
+
+template<typename NODE_TYPE, typename ...PATH_PAIRs>
+constexpr static void matchPath(NODE_TYPE from, NODE_TYPE to,
+        Path<NODE_TYPE>& result, TypeList<PATH_PAIRs...>) {
+    (matchPath(from, to, result, PATH_PAIRs{}) || ...); // <2>
+}
+----
+
+[.fragment]
+[source,cpp]
+----
+// export compile/run-time interface
+template<typename NODE_TYPE>
+constexpr static Path<NODE_TYPE> getPath(NODE_TYPE from, NODE_TYPE to) { // <3>
+    Path<NODE_TYPE> result{};
+    matchPath(from, to, result, SavedPaths{});
+    return result;
+}
+----
+
+[.fragment]
+<1> 当FROM/TARGET与表项匹配时，返回路径 result
+<2> 遍历查表动作，直到找到路径为止
+<3> 供运行时使用
+
+== 语言发展完善体验
+
+== 结论
+[%step]
+- 库、框架开发者必备技能
+- 更高级别抽象层次，实现零成本抽象
+- 设计灵活组合、类型安全、容易使用的接口
+- 领域特定语言DSL
+
+[state=thank]
+== Thank you!
 
 

@@ -18,6 +18,20 @@
     color: orange;
 }
 
+.reveal .icon-center {
+    text-align: center;
+    display: block;
+}
+
+section[data-state="thank"] h2 {
+    text-align: center;
+    font-size: 3em;
+}
+
+.reveal .slides > section, .reveal .slides > section > section {
+    padding: 0;
+}
+
 .reveal h1 {
   text-shadow: none;
   font-size: 70pt;
@@ -139,6 +153,16 @@ section .content {
 
 section .paragraph {
     font-size: 20pt;
+}
+
+section .tableblock {
+    font-size: 18pt;
+}
+
+.reveal table th, .reveal table td {
+    text-align: left;
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    border: 0 solid #dedede;
 }
 
 section .dlist, section .ulist, section .olist {

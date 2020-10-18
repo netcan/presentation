@@ -223,7 +223,7 @@ What you don’t use, you don’t pay for. And further: What you do use, you cou
 <section><section id="_元编程_metaprogramming"><h2>元编程 &amp; Metaprogramming</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>编译器解析执行代码，并 <strong>生成</strong> 代码、数据</p></li><li class="fragment"><p>将运行时逻辑挪到编译时计算，实现零成本抽象</p></li><li class="fragment"><p>运行时拥有改变结构的能力，动静结合</p></li></ul></div></div></section><section id="_元编程_流派"><h2>元编程 &amp; 流派</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p><a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">Constexpr all the things!</a></p></li><li class="fragment"><p>模板元编程</p></li><li class="fragment"><p>两者结合</p></li></ul></div></div></section><section id="_constexpr_all_the_things"><h2>Constexpr all the things!</h2><div class="slide-content"><div class="imageblock" style=""><img src="constexpr-all-the-things.png" alt="80%" width="80%"></div>
 <aside class="notes"><div class="paragraph"><p>constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后，就能增加使用面了，降低门槛。</p></div></aside></div></section><section id="_模板元编程" class="columns"><h2>模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>运行时交互</p></div>
 <div class="ulist"><ul><li class="fragment"><p>数值</p></li><li class="fragment"><p>对象</p></li></ul></div></div></div>
-<div class="openblock column"><div class="content"><div class="paragraph"><p>编译时计算</p></div>
+<div class="openblock column"><div class="content"><div class="paragraph"><p>编译时计算（常量）</p></div>
 <div class="ulist"><ul><li class="fragment"><p>数值</p></li><li class="fragment"><p>类型</p></li><li class="fragment"><p>对象 (C++20)</p></li></ul></div></div></div></div></section><section id="_模板元编程_2"><h2>模板元编程</h2><div class="slide-content"><div class="paragraph"><p>函数式编程范式</p></div>
 <div class="ulist"><ul><li class="fragment"><p>无副作用纯函数</p></li><li class="fragment"><p>延迟计算</p></li><li class="fragment"><p>模式匹配</p></li></ul></div>
 <aside class="notes"><div class="paragraph"><p>由最基本的函数，通过函数组合实现复杂逻辑</p></div></aside></div></section><section id="_模板元编程数值计算" class="columns"><h2>模板元编程：数值计算</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>计算Fibonacci数列: \$f(n) = f(n-1) + f(n-2)\$</p></div>
@@ -272,7 +272,7 @@ struct TypeList {
     using type = TypeList&lt;Ts...&gt;; <i class="conum" data-value="2"></i><b>(2)</b>
     constexpr static size_t size = sizeof...(Ts); <i class="conum" data-value="3"></i><b>(3)</b>
 };</code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入参数，&#8230;&#8203;Ts <span class="blue">模板参数包</span> 声明，表示接收任意多的类型参数： T1, T2, T3, &#8230;&#8203;</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>输出类型，Ts&#8230;&#8203; 表示展开 <span class="blue">模板参数包</span>，展开后为T1, T2, T3, &#8230;&#8203;</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>列表长度，<code>sizeof&#8230;&#8203;</code> 操作符求参数包个数</td></tr></table></div></div></section><section id="_typelist"><h2>TypeList</h2><div class="slide-content"><div class="paragraph"><p>基本操作</p></div>
-<div class="ulist"><ul><li class="fragment"><p>向TypeList尾部插入一些类型: <code>append</code></p></li><li class="fragment"><p>类型参数转发: <code>exportTo</code></p></li><li class="fragment"><p>判断当前类型是否为 TypeList: <code>IsTypeList</code></p></li><li class="fragment"><p>判断类型是否在TypeList中: <code>Elem</code></p></li><li class="fragment"><p>高阶函数</p><div class="ulist"><ul><li><p><code>Map</code></p></li><li><p><code>Filter</code></p></li><li><p><code>Fold</code></p></li></ul></div></li></ul></div></div></section><section id="_append"><h2>append</h2><div class="slide-content"><div class="paragraph"><p>向TypeList尾部插入一些类型</p></div>
+<div class="ulist"><ul><li class="fragment"><p>向TypeList尾部插入一些类型: <code>append</code></p></li><li class="fragment"><p>类型参数转发: <code>exportTo</code></p></li><li class="fragment"><p>判断类型是否在TypeList中: <code>Elem</code></p></li><li class="fragment"><p>高阶函数</p><div class="ulist"><ul><li><p><code>Map</code></p></li><li><p><code>Filter</code></p></li><li><p><code>Fold</code></p></li></ul></div></li></ul></div></div></section><section id="_append"><h2>append</h2><div class="slide-content"><div class="paragraph"><p>向TypeList尾部插入一些类型</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename ...Ts&gt;
 struct TypeList {
   template &lt;typename ...T&gt; <i class="conum" data-value="1"></i><b>(1)</b>
@@ -293,24 +293,7 @@ struct TypeList {
 <div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何调用</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">TypeList&lt;int, char&gt;::exportTo&lt;std::tuple&gt; // std::tuple&lt;int, char&gt;
-TypeList&lt;int, char&gt;::exportTo&lt;std::variant&gt; // std::variant&lt;int, char&gt;</code></pre></div></div></div></section><section id="_istypelist"><h2>IsTypeList</h2><div class="slide-content"><div class="paragraph"><p>判断当前类型是否为 TypeList</p></div>
-<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-struct IsTypeList {
-    constexpr static bool value = false; <i class="conum" data-value="2"></i><b>(2)</b>
-};
-
-template&lt;typename ...Ts&gt;
-struct IsTypeList&lt;TypeList&lt;Ts...&gt;&gt; { <i class="conum" data-value="3"></i><b>(3)</b>
-    constexpr static bool value = true;
-};
-
-template&lt;typename IN&gt;
-constexpr bool IsTypeList_v = IsTypeList&lt;IN&gt;::value;</code></pre></div></div>
-<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认认为该类型不是TypeList</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配，当类型参数IN和TypeList类型一致时，返回 true</td></tr></table></div>
-<div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
-如何调用</p></div>
-<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">IsTypeList_v&lt;int&gt;; // false
-IsTypeList_v&lt;TypeList&lt;int&gt;&gt;; // true</code></pre></div></div></div></section><section id="_elem"><h2>Elem</h2><div class="slide-content"><div class="paragraph"><p>判断类型是否在TypeList中</p></div>
+TypeList&lt;int, char&gt;::exportTo&lt;std::variant&gt; // std::variant&lt;int, char&gt;</code></pre></div></div></div></section><section id="_elem"><h2>Elem</h2><div class="slide-content"><div class="paragraph"><p>判断类型是否在TypeList中</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename E&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Elem {
     constexpr static bool value = false; <i class="conum" data-value="2"></i><b>(2)</b>
@@ -334,7 +317,10 @@ void sort(RandomIt first, RandomIt last,
     Compare comp); <i class="conum" data-value="1"></i><b>(1)</b></code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>sort为高阶函数，其输入参数为 <code>comp</code> 函数</td></tr></table></div></div></section><section id="_map高阶函数"><h2>Map高阶函数</h2><div class="slide-content"><div class="ulist"><ul><li><p>输入一个列表和函数 f</p></li><li><p>输出对列表中的每个元素进行f函数调用后的列表</p></li></ul></div>
 <div class="imageblock fragment" style=""><img src="Mapping-steps-loillibe-new.gif" alt="100%" width="80%"></div></div></section><section id="_filter高阶函数"><h2>Filter高阶函数</h2><div class="slide-content"><div class="ulist"><ul><li><p>输入一个列表和谓词函数P</p></li><li><p>对列表中的每个元素进行过滤操作，输出只保留谓词函数为真的元素的列表</p></li></ul></div>
 <div class="imageblock fragment" style=""><img src="Filter-steps-loillierbe.gif" alt="100%" width="80%"></div></div></section><section id="_fold高阶函数" class="columns"><h2>Fold高阶函数</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="ulist"><ul><li><p>输入一个列表，二元函数f，和初值init</p></li><li><p>输出一个元素，结果为列表每个元素与二元函数递归调用后的结果</p></li></ul></div></div></div>
-<div class="openblock column is-one-third"><div class="content"><div class="imageblock fragment" style=""><img src="fold.jpg" alt="fold"></div></div></div></div></section></section>
+<div class="openblock column is-one-third"><div class="content"><div class="imageblock fragment" style=""><img src="fold.jpg" alt="fold"></div></div></div>
+<div class="openblock column"><div class="content"><div class="imageblock fragment" style=""><img src="fold2.jpg" alt="fold2"></div></div></div></div></section><section id="_mapfilterfold"><h2>Map/Filter/Fold</h2><div class="slide-content"><div class="paragraph fragment"><p>map([🐂, 🥔, 🐔, 🌽], 烹饪) <span class="fragment">&#8658; [🍔, 🍟, 🍗, 🍿]</span></p></div>
+<div class="paragraph fragment"><p>filter([🍔, 🍟, 🍗, 🍿], 素食) <span class="fragment">&#8658; [🍟, 🍿]</span></p></div>
+<div class="paragraph fragment"><p>fold([🍔, 🍟, 🍗, 🍿], 🍺, 吃) <span class="fragment">&#8658; 💩</span></p></div></div></section></section>
 <section><section id="_高阶函数_2"><h2>高阶函数</h2><div class="slide-content"><div class="quoteblock"><blockquote><div class="paragraph"><p>Richard Waters (1979) developed a program that automatically analyzes traditional Fortran programs, viewing them in terms of <strong>maps</strong>, <strong>filters</strong>, and <strong>accumulations</strong>. He found that fully <strong>90 percent</strong> of the code in the Fortran Scientific Subroutine Package fits neatly into this paradigm. One of the reasons for the success of Lisp as a programming language is that lists provide a standard medium for expressing ordered collections so that they can be manipulated using higher-order operations. The programming language APL owes much of its power and appeal to a similar choice. In APL all data are represented as arrays, and there is a universal and convenient set of generic operators for all sorts of array operations.</p></div></blockquote><div class="attribution"><cite><a href="https://github.com/codereport/Talks/raw/master/2020-09-CppCon/SICP/Structure%20and%20Interpretation%20of%20Computer%20Programs%20-%20SICP.pdf">Structure and Interpretation of Computer Programs - SICP</a></cite><br>&#8212; Conor Hoekstra</div></div></div></section><section id="_map实现"><h2>Map实现</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, template &lt;typename&gt; class F&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Map; <i class="conum" data-value="2"></i><b>(2)</b>
 
@@ -349,25 +335,21 @@ using Map_t = typename Map&lt;IN, F&gt;::type;</code></pre></div></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. <code>template &lt;typename&gt; class F</code> 为元函数声明，表示该函数输入一个类型参数<br>
 2. <code>typename F&lt;Ts&gt;::type</code> 表示对元函数 F 调用，输入一个类型参数 <code>Ts</code>，返回调用后的类型参数 <code>::type</code><br>
 3. <code>typename F&lt;Ts&gt;::type&#8230;&#8203;</code> 展开后结果为 <code>typename F&lt;T1&gt;::type, typename F&lt;T2&gt;::type, typename F&lt;T3&gt;::type, &#8230;&#8203;</code></td></tr></table></div></div></section><section id="_filter实现"><h2>Filter实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, template &lt;typename&gt; class P, typename OUT = TypeList&lt;&gt;&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-struct Filter {
-    using type = OUT; <i class="conum" data-value="2"></i><b>(2)</b>
-};
+struct Filter { using type = OUT; }; <i class="conum" data-value="2"></i><b>(2)</b>
 
 template&lt;template &lt;typename&gt; class P, typename OUT, typename H, typename ...Ts&gt;
-class Filter&lt;TypeList&lt;H, Ts...&gt;, P, OUT&gt; {
-    using tails = TypeList&lt;Ts...&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
-public:
-    using type = typename std::conditional_t&lt;P&lt;H&gt;::value, <i class="conum" data-value="4"></i><b>(4)</b>
-          Filter&lt;tails, P, typename OUT::template append&lt;H&gt;&gt;,
-          Filter&lt;tails, P, OUT&gt;&gt;::type;
-};
+struct Filter&lt;TypeList&lt;H, Ts...&gt;, P, OUT&gt;:
+    std::conditional_t&lt;P&lt;H&gt;::value,
+        Filter&lt;TypeList&lt;Ts...&gt;, P, typename OUT::template append&lt;H&gt;&gt;,
+        Filter&lt;TypeList&lt;Ts...&gt;, P, OUT&gt;&gt; { }; <i class="conum" data-value="3"></i><b>(3)</b>
 
 template&lt;typename IN, template &lt;typename&gt; class P&gt;
 using Filter_t = typename Filter&lt;IN, P&gt;::type;</code></pre></div></div>
-<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN 和 谓词函数 P</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回类型为空 TypeList; 列表为空时递归终止返回当前 OUT TypeList</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配当类型参数 IN 为 <strong>非空</strong> TypeList时，<code>tails</code> 取除了第一个元素后剩下元素组成的TypeList</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList</td></tr></table></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN 和 谓词函数 P</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回类型为空 TypeList; 列表为空时递归终止返回当前 OUT TypeList</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList</td></tr></table></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. Filter实现采用了尾递归方式，可能有助于编译器提高编译速度<br>
-2. <code>P&lt;H&gt;::value</code> 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 <code>::value</code><br>
-3. 对 OUT TypeList进行append参数 H，因为 <code>append</code> 也是个模板元函数，嵌套于类TypeList中，需要写成 <code>typename OUT::template append&lt;H&gt;</code> ，可以看成是 <code>out.append(h)</code> 形式</td></tr></table></div></div></section><section id="_fold实现"><h2>Fold实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+2. 使用继承方式省去了写 <code>using type = &#8230;&#8203;</code> 的代码<br>
+3. <code>P&lt;H&gt;::value</code> 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 <code>::value</code><br>
+4. 对 OUT TypeList进行append参数 H，因为 <code>append</code> 也是个模板元函数，内嵌于类TypeList中，需要写成 <code>typename OUT::template append&lt;H&gt;</code> ，可以看成是 <code>out.append(h)</code> 形式</td></tr></table></div></div></section><section id="_fold实现"><h2>Fold实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Fold { using type = INIT; }; <i class="conum" data-value="2"></i><b>(2)</b>
 
 template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt;
@@ -375,25 +357,22 @@ using Fold_t = typename Fold&lt;IN, INIT, OP&gt;::type;
 
 template&lt;typename ACC, template&lt;typename, typename&gt; class OP,
     typename H, typename ...Ts&gt;
-struct Fold&lt;TypeList&lt;H, Ts...&gt;, ACC, OP&gt; {
-    using type = Fold_t&lt;TypeList&lt;Ts...&gt;, typename OP&lt;ACC, H&gt;::type, OP&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
-};</code></pre></div></div>
+struct Fold&lt;TypeList&lt;H, Ts...&gt;, ACC, OP&gt;:
+    Fold&lt;TypeList&lt;Ts...&gt;, typename OP&lt;ACC, H&gt;::type, OP&gt; {}; <i class="conum" data-value="3"></i><b>(3)</b></code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN，初始类型参数 INIT, 二元函数 OP</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回初值；列表为空时递归终止返回当前 INIT 参数</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>对当前参数 H 执行二元函数 OP, 其返回类型更新 INIT 参数</td></tr></table></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. <code>template &lt;typename, typename&gt; class OP</code> 为元函数声明，两个 <code>typename</code> 说明该函数输入两个类型参数<br>
 2. <code>typename OP&lt;ACC, H&gt;::type</code> 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 <code>::type</code></td></tr></table></div></div></section></section>
-<section id="_typelist实战"><h2>TypeList实战</h2><div class="slide-content"><div class="ulist"><ul><li><p>连接两个TypeList: <code>Concat</code></p></li><li><p>快速排序: <code>QuickSort</code></p></li><li><p>求图全局最短路径，动静结合</p></li></ul></div></div></section>
-<section><section id="_concat"><h2>Concat</h2><div class="slide-content"><div class="paragraph"><p>连接两个TypeList</p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+<section id="_typelist实战"><h2>TypeList实战</h2><div class="slide-content"><div class="ulist"><ul><li><p>连接两个TypeList: <code>Concat</code></p></li><li><p>TypeList去重: <code>Unique</code></p></li><li><p>快速排序: <code>QuickSort</code></p></li><li><p>求图全局最短路径，动静结合</p></li></ul></div></div></section>
+<section><section id="_concat"><h2>Concat</h2><div class="slide-content"><div class="paragraph"><p>连接两个TypeList</p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt;    <i class="conum" data-value="1"></i><b>(1)</b>
 class Concat {
     template&lt;typename ACC, typename E&gt; <i class="conum" data-value="2"></i><b>(2)</b>
-    struct Append {
-        using type = typename ACC::template append&lt;E&gt;;
-    };
+    struct Append: ACC::template append&lt;E&gt; { };
 public:
     using type = Fold_t&lt;IN2, IN, Append&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
 };
 
 template&lt;typename IN, typename IN2&gt;
-using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入两个TypeList: IN, IN2</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 <code>append</code> 元函数</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>Fold 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用</td></tr></table></div><div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入两个TypeList: IN, IN2</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>定义 Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 <code>append</code> 元函数</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td><span class="blue">Fold</span> 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用</td></tr></table></div><div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何调用</p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">Concat_t&lt;TypeList&lt;int, char&gt;, TypeList&lt;float&gt;&gt; // TypeList&lt;int, char, float&gt;</code></pre></div></div></div></section><section id="_concat_2"><h2>Concat 2</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 有没有其他解法</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt;
@@ -409,15 +388,26 @@ using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模式匹配两个TypeList，得到各自模板参数包 Ts, Ts2</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>结果为两个TypeList的参数包都展开后放到一起</td></tr></table></div></div></section><section id="_concat_3"><h2>Concat 3</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 还有没有其他解法</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt;
-struct Concat {
-    using type = typename IN2::template exportTo&lt;IN::template append&gt;; <i class="conum" data-value="1"></i><b>(1)</b>
-};
+struct Concat: IN2::template exportTo&lt;IN::template append&gt; { }; <i class="conum" data-value="1"></i><b>(1)</b>
 
 template&lt;typename IN, typename IN2&gt;
 using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>使用参数转发函数exportTo，将IN2的参数转发到IN的append函数上去</td></tr></table></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上<br>
 2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 <code>IN::template append</code></td></tr></table></div></div></section></section>
+<section id="_unique"><h2>Unique</h2><div class="slide-content"><div class="paragraph"><p>对TypeList去重操作</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+class Unique {
+    template&lt;typename ACC, typename E&gt;                <i class="conum" data-value="2"></i><b>(2)</b>
+    struct Append: std::conditional_t&lt;Elem_v&lt;ACC, E&gt;, <i class="conum" data-value="3"></i><b>(3)</b>
+        ACC, typename ACC::template append&lt;E&gt;&gt; {};
+public:
+    using type = Fold_t&lt;IN, TypeList&lt;&gt;, Append&gt;;      <i class="conum" data-value="4"></i><b>(4)</b>
+};
+
+template&lt;typename IN&gt;
+using Unique_t = typename Unique&lt;IN&gt;::type;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入待去重的IN TypeList</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>定义二元操作Append，输入ACC TypeList和待插入类型参数E</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>当前仅当E不存在于ACC中插入列表</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td><span class="blue">Fold</span> 高阶函数调用，输入待去重的IN TypeList，初值空表，二元操作 Append，对IN TypeList的每个元素进行 Append 调用</td></tr></table></div></div></section>
 <section><section id="_quicksort"><h2>QuickSort</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>选取表中Pivot元素，以Pivot为划分点 <span class="fragment blue">Filter操作</span></p><div class="ulist"><ul><li><p>小于Pivot的所有元素放到左边形成新表</p></li><li><p>大于等于Pivot的所有元素放到右边形成新表</p></li></ul></div></li><li class="fragment"><p>对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 <span class="fragment blue">Fold操作</span></p></li></ul></div><div class="olist arabic"><ol class="arabic"><li class="fragment"><p>{<strong class="fragment highlight-current-blue">40</strong>, 80, 30, 90, 10, 70, 50}</p></li><li class="fragment"><p>{{<strong class="fragment highlight-current-blue">30</strong>, 10}, 40, {80, 90, 70, 50}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {<strong class="fragment highlight-current-blue">80</strong>, 90, 70, 50}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {{<strong class="fragment highlight-current-blue">70</strong>, 50}, 80, {90}}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}</p></li><li class="fragment"><p>{10, 30, 40, 50, 70, 80, 90}</p></li></ol></div></div></section><section id="_quicksort_2"><h2>QuickSort</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct QuickSort { using type = TypeList&lt;&gt;; };                <i class="conum" data-value="2"></i><b>(2)</b>
 template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt;
@@ -436,7 +426,7 @@ class QuickSort&lt;TypeList&lt;PIVOT, Ts...&gt;, CMP&gt; {
 public:
     using type = Concat_t&lt;typename SmallerSorted::template append&lt;PIVOT&gt;, BiggerSorted&gt;; <i class="conum" data-value="5"></i><b>(5)</b>
 };</code></pre></div></div>
-<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入一个IN TypeList，比较元函数CMP</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回空列表</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>定义两个元函数LT/GT，用于得到和PIVIOT比较结果</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>Filter操作得到左右两个表，对两个表进行递归QuickSort操作</td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>连接成表得到最终有序表</td></tr></table></div></div></section><section id="_quicksort_3"><h2>QuickSort</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入一个IN TypeList，比较元函数CMP</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回空列表</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>定义两个元函数LT/GT，用于得到和PIVIOT比较结果</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td><span class="blue">Filter</span> 操作得到左右两个表，对两个表进行递归QuickSort操作</td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>连接成表得到最终有序表</td></tr></table></div></div></section><section id="_quicksort_3"><h2>QuickSort</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何调用</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename LHS, typename RHS&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct SizeCmp {
@@ -447,7 +437,7 @@ QuickSort_t&lt;
     TypeList&lt;char, float, double, int, char&gt;,
     SizeCmp&gt; // TypeList&lt;char, char, float, int, double&gt;&gt;</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>定义比较函数，输入两个类型，根据类型大小排序</td></tr></table></div></div></section></section>
-<section><section id="_全局最短路径"><h2>全局最短路径</h2><div class="slide-content"><div class="imageblock" style=""><img src="find_shortest_path.png" alt="find shortest path"></div><div class="ulist"><ul><li class="fragment"><p>存在环：A&#8594;B&#8594;A</p></li><li class="fragment"><p>A&#8594;D最短路径其实是A&#8594;C&#8594;D</p></li><li class="fragment"><p>D&#8594;E不可达</p></li></ul></div></div></section><section id="_全局最短路径_2"><h2>全局最短路径</h2><div class="slide-content"><div class="paragraph"><p>任意给定两个点，采用深度优先搜索，伪代码如下</p></div>
+<section><section id="_全局最短路径"><h2>全局最短路径</h2><div class="slide-content"><div class="imageblock" style=""><img src="find_shortest_path.png" alt="find shortest path"></div><div class="ulist"><ul><li class="fragment"><p>存在环：A&#8594;B&#8594;A</p></li><li class="fragment"><p>A&#8594;D最短路径其实是A&#8594;C&#8594;D</p></li><li class="fragment"><p>D&#8594;E不可达</p></li></ul></div></div></section><section id="_伪代码"><h2>伪代码</h2><div class="slide-content"><div class="paragraph"><p>任意给定两个点，采用深度优先搜索，伪代码如下</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="python" class="language-python hljs" data-noescape="true">def find_shortest_path(from, to, path = []):         <i class="conum" data-value="1"></i><b>(1)</b>
     if from == to: return path   # reach target      <i class="conum" data-value="2"></i><b>(2)</b>
     if from in path: return []   # find cycle        <i class="conum" data-value="3"></i><b>(3)</b>
@@ -456,7 +446,223 @@ QuickSort_t&lt;
         path = min(path, cur_path)                   <i class="conum" data-value="6"></i><b>(6)</b>
     return path</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入起点from, 终点to</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>若找到目的地to，返回当前路径</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>若当前点存在当前路径中，则遇到了环，返回空路径</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>从边集edges找到当前点from的邻接边表 <span class="fragment blue">Filter操作</span><br>
-从邻接边表得到邻接点表v <span class="fragment blue">Map操作</span></td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>更新当前路径curr_path</td></tr><tr><td><i class="conum" data-value="6"></i><b>6</b></td><td>求出最短非空路径 <span class="fragment blue">Fold操作</span></td></tr></table></div></div></section></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
+从邻接边表得到邻接点表v <span class="fragment blue">Map操作</span></td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>更新当前路径curr_path</td></tr><tr><td><i class="conum" data-value="6"></i><b>6</b></td><td>求出最短非空路径 <span class="fragment blue">Fold操作</span></td></tr></table></div></div></section><section id="_用户界面"><h2>用户界面</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char ID&gt;
+struct Node { constexpr static char id = ID; };
+using A = Node&lt;'A'&gt;;
+using B = Node&lt;'B'&gt;;
+using C = Node&lt;'C'&gt;;
+using D = Node&lt;'D'&gt;;
+using E = Node&lt;'E'&gt;;
+
+using g = Graph&lt; <i class="conum" data-value="1"></i><b>(1)</b>
+    link(node(A) -&gt; node(B) -&gt; node(C) -&gt; node(D)),
+    link(node(A) -&gt; node(C)),  // test shortest path: A -&gt; C -&gt; D
+    link(node(B) -&gt; node(A)),  // test cycle
+    link(node(A) -&gt; node(E))&gt;; // test D -&gt; E unreachable
+
+static_assert(g::getPath('A', 'D').sz == 3);    // compile-time test <i class="conum" data-value="2"></i><b>(2)</b>
+auto path = g::getPath(argv[1][0], argv[2][0]); // runtime test      <i class="conum" data-value="2"></i><b>(2)</b>
+std::cout &lt;&lt; " path size: " &lt;&lt; path.sz &lt;&lt; std::endl;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>用户构造边集，返回Graph对象</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>Graph对象生成的getPath接口既能用于编译时，也能运行时</td></tr></table></div></div></section><section id="_构造边集"><h2>构造边集</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using g = Graph&lt; <i class="conum" data-value="1"></i><b>(1)</b>
+    link(node(A) -&gt; node(B) -&gt; node(C) -&gt; node(D)),
+    link(node(A) -&gt; node(C)),  // test shortest path: A -&gt; C -&gt; D
+    link(node(B) -&gt; node(A)),  // test cycle
+    link(node(A) -&gt; node(E))&gt;; // test D -&gt; E unreachable</code></pre></div></div>
+<div class="paragraph"><p><span class="icon icon-center fragment"><i class="fa fa-angle-double-down"></i></span></p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using g = Graph&lt;
+    auto(*)(A) -&gt; auto(*)(B) -&gt; auto(*)(C) -&gt; auto(*)(D) -&gt; void,
+    auto(*)(A) -&gt; auto(*)(C) -&gt; void,
+    auto(*)(B) -&gt; auto(*)(A) -&gt; void,
+    auto(*)(A) -&gt; auto(*)(E) -&gt; void&gt;;</code></pre></div></div>
+<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content"><code>auto(*)(A) &#8594; B</code> 声明一个函数指针类型，为 <span class="blue">后置返回类型</span> 写法，通过在前面声明 <code>auto</code> ，这样返回类型就可以通过箭头&#8594;写到后面</td></tr></table></div>
+<div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. 为了更好描述图，正好用上 <span class="blue">后置返回类型</span> 中的箭头符号<br>
+2. 由于函数可以返回一个函数，所以可以串起来，达到链 <code>auto(*)(A) &#8594; auto(*)(B) &#8594; auto(*)(C) &#8594; auto(*)(D) &#8594; void</code> 效果<br>
+3. 约定链条最后用 <code>void</code> 表示结束</td></tr></table></div></div></section><section id="_边结构"><h2>边结构</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename F, typename T&gt;
+struct Edge {
+    using From = F;
+    using To = T;
+};</code></pre></div></div>
+<div class="paragraph fragment"><p>基础操作</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename Node = void&gt;
+struct EdgeTrait {
+    template&lt;typename Edge&gt; struct IsFrom <i class="conum" data-value="1"></i><b>(1)</b>
+    { constexpr static bool value = std::is_same_v&lt;typename Edge::From, Node&gt;; };
+    template&lt;typename Edge&gt; struct IsTo   <i class="conum" data-value="1"></i><b>(1)</b>
+    { constexpr static bool value = std::is_same_v&lt;typename Edge::To, Node&gt;; };
+    template&lt;typename Edge&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    struct GetFrom { using type = typename Edge::From; };
+    template&lt;typename Edge&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    struct GetTo { using type = typename Edge::To; };
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入一个节点Node，一条边Edge，输出该节点是否为Edge的源From、目的点To</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>输入一条边Edge，输出它的源From、目的点To</td></tr></table></div>
+<div class="admonitionblock tip fragment"><table><tr><td class="icon"><i class="fa fa-lightbulb-o" title="Tip"></i></td><td class="content">约定用 Trait 后缀表明为一组类型的属性、动作</td></tr></table></div></div></section><section id="_解构链chain"><h2>解构链Chain</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+链 <code>auto(*)(A) &#8594; auto(*)(B) &#8594; auto(*)(C) &#8594; auto(*)(D) &#8594; void</code><br>
+<span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span>
+Edge边表 <code>TypeList&lt;Edge&lt;A, B&gt;, Edge&lt;B, C&gt;, Edge&lt;C, D&gt;&gt;</code></p></div>
+<div class="paragraph fragment"><p>定义一个解构函数Chain，输入链，输出Edge表</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename T, typename OUT = TypeList&lt;&gt;&gt;
+struct Chain;
+
+template&lt;typename F, typename OUT&gt;
+struct Chain&lt;auto(*)(F) -&gt; void, OUT&gt; {
+    using From = F;
+    using type = OUT; <i class="conum" data-value="1"></i><b>(1)</b>
+};
+
+template&lt;typename F, typename T, typename OUT&gt;
+struct Chain&lt;auto(*)(F) -&gt; T, OUT&gt; {
+private:
+    using To = typename Chain&lt;T, OUT&gt;::From;
+public:
+    using From = F;
+    using type = typename Chain&lt;T,
+          typename OUT::template append&lt;Edge&lt;From, To&gt;&gt;&gt;::type; <i class="conum" data-value="2"></i><b>(2)</b>
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>递归边界情况，当遇到链尾 <code>void</code> ，返回当前边表</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>常规情况，不断构造Edge边，存到边表OUT TypeList中</td></tr></table></div></div></section><section id="_获得边集"><h2>获得边集</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename... Chains&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+class Graph {
+    using Edges = Fold_t&lt;    <i class="conum" data-value="2"></i><b>(2)</b>
+        TypeList&lt;typename Chain&lt;Chains&gt;::type...&gt;,
+        TypeList&lt;&gt;,
+        Concat&gt;;
+    ...
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>用户输入链条集</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>Chain元函数解构每一条链条得到边表的集合，通过 <span class="blue">Fold</span> 操作展开得到边集</td></tr></table></div></div></section><section id="_两点间最短路径"><h2>两点间最短路径</h2><div class="slide-content"><div class="paragraph"><p>元函数PathFinder声明如下</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// def find_shortest_path(from, to, path = []):
+template&lt;typename FROM, typename TARGET,         <i class="conum" data-value="1"></i><b>(1)</b>
+    typename PATH = TypeList&lt;&gt;, typename = void&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+struct PathFinder;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入两个点FROM，TARGET，输出他们之间最短路径</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>PATH路径用于判断是否遇到了环；第四个参数用于模式匹配中的条件判断</td></tr></table></div>
+<div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">有时候 <code>typename Cond = void</code> 对类型参数名 <code>Cond</code> 不关注时，可以写成 <code>typename = void</code></td></tr></table></div></div></section><section id="_两点间最短路径_2"><h2>两点间最短路径</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// if from == to: return path # reach target
+template&lt;typename TARGET, typename PATH&gt;
+struct PathFinder&lt;TARGET, TARGET, PATH&gt;: <i class="conum" data-value="1"></i><b>(1)</b>
+    PATH::template append&lt;TARGET&gt; { };   <i class="conum" data-value="2"></i><b>(2)</b></code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模式匹配，当FROM == TARGET时，到达终点</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>返回最短路径</td></tr></table></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// if from in path: return []   # find cycle
+template&lt;typename CURR_NODE, typename TARGET, typename PATH&gt;
+struct PathFinder&lt;CURR_NODE, TARGET, PATH,
+    std::enable_if_t&lt;Elem_v&lt;PATH, CURR_NODE&gt;&gt;&gt;: <i class="conum" data-value="1"></i><b>(1)</b>
+    TypeList&lt;&gt; {}; // return empty path <i class="conum" data-value="2"></i><b>(2)</b></code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模式匹配，当CURR_NODE出现在当前路径中，说明遇到了环</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>返回空路径</td></tr></table></div></div></section><section id="_两点间最短路径_3"><h2>两点间最短路径</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename CURR_NODE, typename TARGET, typename PATH&gt;
+class PathFinder&lt;CURR_NODE, TARGET, PATH,
+    std::enable_if_t&lt;! std::is_same_v&lt;CURR_NODE, TARGET&gt;
+        &amp;&amp; !Elem_v&lt;PATH, CURR_NODE&gt;&gt;&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+    using EdgesFrom = Filter_t&lt;Edges, EdgeTrait&lt;CURR_NODE&gt;::template IsFrom&gt;; <i class="conum" data-value="2"></i><b>(2)</b>
+    // for each (from, v) in edges: # expand next nodes
+    using NextNodes = Map_t&lt;EdgesFrom, EdgeTrait&lt;&gt;::GetTo&gt;; <i class="conum" data-value="3"></i><b>(3)</b>
+    // cur_path = from + find_shortest_path(v, to)
+    template&lt;typename NEXT_NODE&gt;
+    struct GetPath: PathFinder&lt;NEXT_NODE, TARGET,
+        typename PATH::template append&lt;CURR_NODE&gt;&gt; {};
+    using AllPaths = Map_t&lt;NextNodes, GetPath&gt;; <i class="conum" data-value="4"></i><b>(4)</b>
+    template&lt;typename ACC, typename Path&gt; struct MinPath:
+        std::conditional_t&lt;(ACC::size == 0 ||
+            ((ACC::size &gt; Path::size) &amp;&amp; Path::size &gt; 0)), Path, ACC&gt; {};
+public:
+    // path = min(path, cur_path)
+    using type = FoldL_t&lt;AllPaths, TypeList&lt;&gt;, MinPath&gt;; <i class="conum" data-value="5"></i><b>(5)</b>
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>模式匹配，当前仅当当前CURR_NODE节点不是终点TARGET，并且不是环时</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td><span class="blue">Filter</span> 操作，从边集Edges找出邻接CURR_NODE边</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td><span class="blue">Map</span> 操作，对边表每一条边进行GetTo操作，获取CURR_NODE邻接点表</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td><span class="blue">Map</span> 操作，对每个邻接点做为起点进行递归求最短路径集</td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td><span class="blue">Fold</span> 操作，对每条可行路径，找出最短的那条作为最短路径</td></tr></table></div></div></section><section id="_动静结合"><h2>动静结合</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+运行时如何求最短路径</p></div>
+<div class="ulist"><ul><li class="fragment"><p>编译期生成所有节点间的最短路径</p></li><li class="fragment"><p>提供接口供运行时查表，输入起点、终点，查出最短路径</p></li></ul></div>
+<div class="paragraph fragment"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如何得到所有节点间的组合</p></div>
+<div class="paragraph fragment"><p>对边集的起点表和邻接点表做笛卡尔积！</p></div>
+<div class="paragraph"><p><span class="fragment icon-center">{A&#8594;B, B&#8594;C}</span>
+<span class="icon icon-center fragment"><i class="fa fa-angle-double-down"></i></span>
+<span class="fragment icon-center">{A, B} x {B, C}</span>
+<span class="icon icon-center fragment"><i class="fa fa-angle-double-down"></i></span>
+<span class="fragment icon-center">{(A, B), (A, C), (B, B), (B, C)}</span></p></div></div></section><section id="_笛卡尔积"><h2>笛卡尔积</h2><div class="slide-content"><div class="paragraph"><p>输入两个列表，对两个列表中的元素两两组合得到序对表</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename A, typename B,
+    template&lt;typename, typename&gt; class PAIR&gt;
+struct CrossProduct;
+
+template&lt;typename A, typename B, template&lt;typename, typename&gt; class PAIR&gt;
+using CrossProduct_t = typename CrossProduct&lt;A, B, PAIR&gt;::type;
+
+template&lt;typename A, typename B, template&lt;typename, typename&gt; class PAIR&gt;
+class CrossProduct {
+    template&lt;typename RESULT_OUTTER, typename TA&gt;    <i class="conum" data-value="1"></i><b>(1)</b>
+    struct OuterAppend {
+        template&lt;typename RESULT_INNER, typename TB&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+        struct InnerAppend: RESULT_INNER::template append&lt;PAIR&lt;TA, TB&gt;&gt; { };
+        using type = FoldL_t&lt;B, RESULT_OUTTER, InnerAppend&gt;;
+    };
+public:
+    using type = FoldL_t&lt;A, TypeList&lt;&gt;, OuterAppend&gt;;
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>外层循环，得到类型参数TA</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>内层循环，得到类型参数TB，两两组合成序对PAIR&lt;TA, TB&gt;，放到RESULT表中</td></tr></table></div></div></section><section id="_路径存储"><h2>路径存储</h2><div class="slide-content"><div class="paragraph"><p>枚举出所有节点间的组合情况</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using AllPairs = CrossProduct_t&lt;
+    Unique_t&lt;Map_t&lt;Edges, EdgeTrait&lt;&gt;::GetFrom&gt;&gt;,
+    Unique_t&lt;Map_t&lt;Edges, EdgeTrait&lt;&gt;::GetTo&gt;&gt;,
+    std::pair&gt;;</code></pre></div></div>
+<div class="paragraph fragment"><p>路径数据结构</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename NODE_TYPE&gt;
+struct Path {
+    const NODE_TYPE* path;
+    size_t sz;
+};
+
+template&lt;typename NODE, typename... NODEs&gt;
+class PathStorage { <i class="conum" data-value="1"></i><b>(1)</b>
+    using NODE_TYPE = std::decay_t&lt;decltype(NODE::id)&gt;;
+    constexpr static NODE_TYPE pathStorage[] { NODE::id, NODEs::id... };
+public:
+    constexpr static Path&lt;NODE_TYPE&gt; path {
+        .path = pathStorage,
+        .sz   = sizeof...(NODEs) + 1,
+    };
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>PathStorage&lt;A, B, C&gt;::path 存储 A&#8594;C 之间最短路径</td></tr></table></div></div></section><section id="_最短路径表"><h2>最短路径表</h2><div class="slide-content"><div class="paragraph"><p>我们期望编译期生成如下表，供运行时查询</p></div>
+<table class="tableblock frame-none grid-all fragment" style=""><colgroup><col><col><col></colgroup><tbody><tr><td class="tableblock halign-left valign-top"><p class="tableblock">FROM</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">DST</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">MinPath</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">B</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">PathStorage&lt;A, B&gt;::path</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">C</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">PathStorage&lt;A, C&gt;::path</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">D</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">PathStorage&lt;A, C, D&gt;::path</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">PathStorage&lt;A&gt;::path</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">E</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">PathStorage&lt;A, E&gt;::path</p></td></tr></table>
+<div class="paragraph fragment"><p>表项数据结构：PATH_PAIR: <code>std::pair&lt;PAIR, PATH&gt;</code> &#8658; <code>std::pair&lt;std::pair&lt;FROM, DST&gt;, PATH&gt;</code></p></div></div></section><section id="_生成路径"><h2>生成路径</h2><div class="slide-content"><div class="paragraph"><p>输入两节点序对PAIR，输出PATH_PAIR，<span class="blue">Map</span> 操作</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename PAIR&gt;
+struct GetPath {
+    using type = std::pair&lt;PAIR,
+        typename PathFinder&lt;typename PAIR::first_type,
+                            typename PAIR::second_type&gt;::type&gt;;
+};
+
+using AllPaths = Map_t&lt;AllPairs, GetPath&gt;;</code></pre></div></div>
+<div class="paragraph fragment"><p>删除空路径项，<span class="blue">Filter</span> 操作</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename PATH_PAIR&gt;
+struct IsNonEmptyPath {
+    constexpr static bool value = (PATH_PAIR::second_type::size &gt; 0);
+};
+
+using AllNonEmptyPaths = Filter_t&lt;AllPaths, IsNonEmptyPath&gt;;</code></pre></div></div></div></section><section id="_生成数据表项"><h2>生成数据表项</h2><div class="slide-content"><div class="paragraph"><p><span class="blue">Map</span> 操作</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename PATH_PAIR&gt;
+struct SavePath {
+    using type = std::pair&lt;typename PATH_PAIR::first_type,
+            typename PATH_PAIR::second_type::template exportTo&lt;PathStorage&gt;&gt;; <i class="conum" data-value="1"></i><b>(1)</b>
+};
+
+using SavedPaths = Map_t&lt;AllNonEmptyPaths, SavePath&gt;;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>路径数据转发至 PathStorage 类，触发存储</td></tr></table></div></div></section><section id="_生成编译时运行时接口"><h2>生成编译时、运行时接口</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename NODE_TYPE, typename FROM, typename TARGET, typename PATH&gt;
+constexpr static bool matchPath(NODE_TYPE from, NODE_TYPE to,
+        Path&lt;NODE_TYPE&gt;&amp; result, std::pair&lt;std::pair&lt;FROM, TARGET&gt;, PATH&gt;) {
+    if (FROM::id == from &amp;&amp; TARGET::id == to) { <i class="conum" data-value="1"></i><b>(1)</b>
+        result = PATH::path;                    <i class="conum" data-value="1"></i><b>(1)</b>
+        return true;
+    }
+    return false;
+}
+
+template&lt;typename NODE_TYPE, typename ...PATH_PAIRs&gt;
+constexpr static void matchPath(NODE_TYPE from, NODE_TYPE to,
+        Path&lt;NODE_TYPE&gt;&amp; result, TypeList&lt;PATH_PAIRs...&gt;) {
+    (matchPath(from, to, result, PATH_PAIRs{}) || ...); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre></div></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// export compile/run-time interface
+template&lt;typename NODE_TYPE&gt;
+constexpr static Path&lt;NODE_TYPE&gt; getPath(NODE_TYPE from, NODE_TYPE to) { <i class="conum" data-value="3"></i><b>(3)</b>
+    Path&lt;NODE_TYPE&gt; result{};
+    matchPath(from, to, result, SavedPaths{});
+    return result;
+}</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>当FROM/TARGET与表项匹配时，返回路径 result</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>遍历查表动作，直到找到路径为止</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>供运行时使用</td></tr></table></div></div></section></section>
+<section id="_语言发展完善体验"><h2>语言发展完善体验</h2></section>
+<section id="_结论"><h2>结论</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>库、框架开发者必备技能</p></li><li class="fragment"><p>更高级别抽象层次，实现零成本抽象</p></li><li class="fragment"><p>设计灵活组合、类型安全、容易使用的接口</p></li><li class="fragment"><p>领域特定语言DSL</p></li></ul></div></div></section>
+<section id="_thank_you" data-state="thank"><h2>Thank you!</h2></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
   if (!(slide.classList.contains('canvas') || slide.classList.contains('background'))) return;
