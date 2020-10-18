@@ -313,12 +313,12 @@ constexpr bool IsTypeList_v = IsTypeList&lt;IN&gt;::value;</code></pre></div></d
 IsTypeList_v&lt;TypeList&lt;int&gt;&gt;; // true</code></pre></div></div></div></section><section id="_elem"><h2>Elem</h2><div class="slide-content"><div class="paragraph"><p>判断类型是否在TypeList中</p></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename E&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Elem {
-    static constexpr bool value = false; <i class="conum" data-value="2"></i><b>(2)</b>
+    constexpr static bool value = false; <i class="conum" data-value="2"></i><b>(2)</b>
 };
 
 template&lt;typename E, typename ...Ts&gt;
 struct Elem&lt;TypeList&lt;Ts...&gt;, E&gt; {
-    static constexpr bool value = (std::is_same_v&lt;E, Ts&gt; || ...); <i class="conum" data-value="3"></i><b>(3)</b>
+    constexpr static bool value = (std::is_same_v&lt;E, Ts&gt; || ...); <i class="conum" data-value="3"></i><b>(3)</b>
 };
 
 template&lt;typename IN, typename E&gt;
@@ -382,7 +382,7 @@ struct Fold&lt;TypeList&lt;H, Ts...&gt;, ACC, OP&gt; {
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. <code>template &lt;typename, typename&gt; class OP</code> 为元函数声明，两个 <code>typename</code> 说明该函数输入两个类型参数<br>
 2. <code>typename OP&lt;ACC, H&gt;::type</code> 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 <code>::type</code></td></tr></table></div></div></section></section>
 <section id="_typelist实战"><h2>TypeList实战</h2><div class="slide-content"><div class="ulist"><ul><li><p>连接两个TypeList: <code>Concat</code></p></li><li><p>快速排序: <code>QuickSort</code></p></li><li><p>求图全局最短路径，动静结合</p></li></ul></div></div></section>
-<section><section id="_concat"><h2>Concat</h2><div class="slide-content"><div class="paragraph"><p>连接两个TypeList: <code>Concat</code></p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+<section><section id="_concat"><h2>Concat</h2><div class="slide-content"><div class="paragraph"><p>连接两个TypeList</p></div><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, typename IN2&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 class Concat {
     template&lt;typename ACC, typename E&gt; <i class="conum" data-value="2"></i><b>(2)</b>
     struct Append {
@@ -418,7 +418,45 @@ using Concat_t = typename Concat&lt;IN, IN2&gt;::type;</code></pre></div></div>
 <div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>使用参数转发函数exportTo，将IN2的参数转发到IN的append函数上去</td></tr></table></div>
 <div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上<br>
 2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 <code>IN::template append</code></td></tr></table></div></div></section></section>
-<section><section id="_quicksort"><h2>QuickSort</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>选取表中Pivot元素，以Pivot为划分点 <span class="fragment blue">Filter操作</span></p><div class="ulist"><ul><li><p>小于Pivot的所有元素放到左边形成新表</p></li><li><p>大于等于Pivot的所有元素放到右边形成新表</p></li></ul></div></li><li class="fragment"><p>对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 <span class="fragment blue">Fold操作</span></p></li></ul></div><div class="olist arabic"><ol class="arabic"><li class="fragment"><p>{<span class="fragment highlight-current-blue">40</span>, 80, 30, 90, 10, 70, 50}</p></li><li class="fragment"><p>{{<span class="fragment highlight-current-blue">30</span>, 10}, 40, {80, 90, 70, 50}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {<span class="fragment highlight-current-blue">80</span>, 90, 70, 50}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {{<span class="fragment highlight-current-blue">70</span>, 50}, 80, {90}}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}</p></li><li class="fragment"><p>{10, 30, 40, 50, 70, 80, 90}</p></li></ol></div></div></section><section id="_quicksort_2"><h2>QuickSort</h2></section></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
+<section><section id="_quicksort"><h2>QuickSort</h2><div class="slide-content"><div class="ulist"><ul><li class="fragment"><p>选取表中Pivot元素，以Pivot为划分点 <span class="fragment blue">Filter操作</span></p><div class="ulist"><ul><li><p>小于Pivot的所有元素放到左边形成新表</p></li><li><p>大于等于Pivot的所有元素放到右边形成新表</p></li></ul></div></li><li class="fragment"><p>对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 <span class="fragment blue">Fold操作</span></p></li></ul></div><div class="olist arabic"><ol class="arabic"><li class="fragment"><p>{<strong class="fragment highlight-current-blue">40</strong>, 80, 30, 90, 10, 70, 50}</p></li><li class="fragment"><p>{{<strong class="fragment highlight-current-blue">30</strong>, 10}, 40, {80, 90, 70, 50}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {<strong class="fragment highlight-current-blue">80</strong>, 90, 70, 50}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {{<strong class="fragment highlight-current-blue">70</strong>, 50}, 80, {90}}}</p></li><li class="fragment"><p>{{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}</p></li><li class="fragment"><p>{10, 30, 40, 50, 70, 80, 90}</p></li></ol></div></div></section><section id="_quicksort_2"><h2>QuickSort</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+struct QuickSort { using type = TypeList&lt;&gt;; };                <i class="conum" data-value="2"></i><b>(2)</b>
+template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt;
+using QuickSort_t = typename QuickSort&lt;IN, CMP&gt;::type;
+
+template&lt;template&lt;typename, typename&gt; class CMP, typename PIVOT, typename ...Ts&gt;
+class QuickSort&lt;TypeList&lt;PIVOT, Ts...&gt;, CMP&gt; {
+    using tails = TypeList&lt;Ts...&gt;;
+    template&lt;typename E&gt;
+    struct LT { constexpr static bool value = CMP&lt;E, PIVOT&gt;::value; };  <i class="conum" data-value="3"></i><b>(3)</b>
+    template&lt;typename E&gt;
+    struct GE { constexpr static bool value = !CMP&lt;E, PIVOT&gt;::value; }; <i class="conum" data-value="3"></i><b>(3)</b>
+
+    using SmallerSorted = QuickSort_t&lt;Filter_t&lt;tails, LT&gt;, CMP&gt;; <i class="conum" data-value="4"></i><b>(4)</b>
+    using BiggerSorted = QuickSort_t&lt;Filter_t&lt;tails, GE&gt;, CMP&gt;;  <i class="conum" data-value="4"></i><b>(4)</b>
+public:
+    using type = Concat_t&lt;typename SmallerSorted::template append&lt;PIVOT&gt;, BiggerSorted&gt;; <i class="conum" data-value="5"></i><b>(5)</b>
+};</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入一个IN TypeList，比较元函数CMP</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>默认返回空列表</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>定义两个元函数LT/GT，用于得到和PIVIOT比较结果</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>Filter操作得到左右两个表，对两个表进行递归QuickSort操作</td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>连接成表得到最终有序表</td></tr></table></div></div></section><section id="_quicksort_3"><h2>QuickSort</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如何调用</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename LHS, typename RHS&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+struct SizeCmp {
+    constexpr static bool value = sizeof(LHS) &lt; sizeof(RHS); <i class="conum" data-value="1"></i><b>(1)</b>
+};
+
+QuickSort_t&lt;
+    TypeList&lt;char, float, double, int, char&gt;,
+    SizeCmp&gt; // TypeList&lt;char, char, float, int, double&gt;&gt;</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>定义比较函数，输入两个类型，根据类型大小排序</td></tr></table></div></div></section></section>
+<section><section id="_全局最短路径"><h2>全局最短路径</h2><div class="slide-content"><div class="imageblock" style=""><img src="find_shortest_path.png" alt="find shortest path"></div><div class="ulist"><ul><li class="fragment"><p>存在环：A&#8594;B&#8594;A</p></li><li class="fragment"><p>A&#8594;D最短路径其实是A&#8594;C&#8594;D</p></li><li class="fragment"><p>D&#8594;E不可达</p></li></ul></div></div></section><section id="_全局最短路径_2"><h2>全局最短路径</h2><div class="slide-content"><div class="paragraph"><p>任意给定两个点，采用深度优先搜索，伪代码如下</p></div>
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="python" class="language-python hljs" data-noescape="true">def find_shortest_path(from, to, path = []):         <i class="conum" data-value="1"></i><b>(1)</b>
+    if from == to: return path   # reach target      <i class="conum" data-value="2"></i><b>(2)</b>
+    if from in path: return []   # find cycle        <i class="conum" data-value="3"></i><b>(3)</b>
+    for each (from, v) in edges: # expand next nodes <i class="conum" data-value="4"></i><b>(4)</b>
+        cur_path = from + find_shortest_path(v, to)  <i class="conum" data-value="5"></i><b>(5)</b>
+        path = min(path, cur_path)                   <i class="conum" data-value="6"></i><b>(6)</b>
+    return path</code></pre></div></div>
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入起点from, 终点to</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>若找到目的地to，返回当前路径</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>若当前点存在当前路径中，则遇到了环，返回空路径</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>从边集edges找到当前点from的邻接边表 <span class="fragment blue">Filter操作</span><br>
+从邻接边表得到邻接点表v <span class="fragment blue">Map操作</span></td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>更新当前路径curr_path</td></tr><tr><td><i class="conum" data-value="6"></i><b>6</b></td><td>求出最短非空路径 <span class="fragment blue">Fold操作</span></td></tr></table></div></div></section></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
   if (!(slide.classList.contains('canvas') || slide.classList.contains('background'))) return;

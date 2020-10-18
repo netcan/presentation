@@ -457,12 +457,12 @@ IsTypeList_v<TypeList<int>>; // true
 ----
 template<typename IN, typename E> // <1>
 struct Elem {
-    static constexpr bool value = false; // <2>
+    constexpr static bool value = false; // <2>
 };
 
 template<typename E, typename ...Ts>
 struct Elem<TypeList<Ts...>, E> {
-    static constexpr bool value = (std::is_same_v<E, Ts> || ...); // <3>
+    constexpr static bool value = (std::is_same_v<E, Ts> || ...); // <3>
 };
 
 template<typename IN, typename E>
@@ -632,7 +632,7 @@ NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `t
 * 求图全局最短路径，动静结合
 
 == Concat
-连接两个TypeList: `Concat`
+连接两个TypeList
 
 [.fragment]
 [source,cpp]
@@ -721,12 +721,92 @@ NOTE: 1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::a
 * 对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 [.fragment.blue]#Fold操作#
 
 [%step]
-. {[.fragment.highlight-current-blue]#40#, 80, 30, 90, 10, 70, 50}
-. {{[.fragment.highlight-current-blue]#30#, 10}, 40, {80, 90, 70, 50}}
-. {{{10}, 30}, 40, {[.fragment.highlight-current-blue]#80#, 90, 70, 50}}
-. {{{10}, 30}, 40, {{[.fragment.highlight-current-blue]#70#, 50}, 80, {90}}}
+. {[.fragment.highlight-current-blue]*40*, 80, 30, 90, 10, 70, 50}
+. {{[.fragment.highlight-current-blue]*30*, 10}, 40, {80, 90, 70, 50}}
+. {{{10}, 30}, 40, {[.fragment.highlight-current-blue]*80*, 90, 70, 50}}
+. {{{10}, 30}, 40, {{[.fragment.highlight-current-blue]*70*, 50}, 80, {90}}}
 . {{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}
 . {10, 30, 40, 50, 70, 80, 90}
 
 === QuickSort
+[.fragment]
+[source,cpp]
+----
+template<typename IN, template<typename, typename> class CMP> // <1>
+struct QuickSort { using type = TypeList<>; };                // <2>
+template<typename IN, template<typename, typename> class CMP>
+using QuickSort_t = typename QuickSort<IN, CMP>::type;
+
+template<template<typename, typename> class CMP, typename PIVOT, typename ...Ts>
+class QuickSort<TypeList<PIVOT, Ts...>, CMP> {
+    using tails = TypeList<Ts...>;
+    template<typename E>
+    struct LT { constexpr static bool value = CMP<E, PIVOT>::value; };  // <3>
+    template<typename E>
+    struct GE { constexpr static bool value = !CMP<E, PIVOT>::value; }; // <3>
+
+    using SmallerSorted = QuickSort_t<Filter_t<tails, LT>, CMP>; // <4>
+    using BiggerSorted = QuickSort_t<Filter_t<tails, GE>, CMP>;  // <4>
+public:
+    using type = Concat_t<typename SmallerSorted::template append<PIVOT>, BiggerSorted>; // <5>
+};
+----
+[.fragment]
+<1> 输入一个IN TypeList，比较元函数CMP
+<2> 默认返回空列表
+<3> 定义两个元函数LT/GT，用于得到和PIVIOT比较结果
+<4> Filter操作得到左右两个表，对两个表进行递归QuickSort操作
+<5> 连接成表得到最终有序表
+
+=== QuickSort
+icon:question[role="orange"]
+如何调用
+
+[.fragment]
+[source,cpp]
+----
+template<typename LHS, typename RHS> // <1>
+struct SizeCmp {
+    constexpr static bool value = sizeof(LHS) < sizeof(RHS); // <1>
+};
+
+QuickSort_t<
+    TypeList<char, float, double, int, char>,
+    SizeCmp> // TypeList<char, char, float, int, double>>
+----
+
+[.fragment]
+<1> 定义比较函数，输入两个类型，根据类型大小排序
+
+== 全局最短路径
+image::find_shortest_path.png[]
+
+[%step]
+- 存在环：A->B->A
+- A->D最短路径其实是A->C->D
+- D->E不可达
+
+=== 全局最短路径
+任意给定两个点，采用深度优先搜索，伪代码如下
+
+[.fragment]
+[source,python]
+----
+def find_shortest_path(from, to, path = []):         // <1>
+    if from == to: return path   # reach target      // <2>
+    if from in path: return []   # find cycle        // <3>
+    for each (from, v) in edges: # expand next nodes // <4>
+        cur_path = from + find_shortest_path(v, to)  // <5>
+        path = min(path, cur_path)                   // <6>
+    return path
+----
+[.fragment]
+<1> 输入起点from, 终点to
+<2> 若找到目的地to，返回当前路径
+<3> 若当前点存在当前路径中，则遇到了环，返回空路径
+<4> 从边集edges找到当前点from的邻接边表 [.fragment.blue]#Filter操作# +
+    从邻接边表得到邻接点表v [.fragment.blue]#Map操作#
+<5> 更新当前路径curr_path
+<6> 求出最短非空路径 [.fragment.blue]#Fold操作#
+
 

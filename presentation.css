@@ -190,3 +190,9 @@ section .dlist, section .ulist, section .olist {
 .reveal .slides section .fragment.highlight-black.visible {
     color: #000000;
 }
+.reveal section img {
+    margin: 15px 0px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid #000;
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); */
+}
