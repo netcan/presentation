@@ -10,4 +10,6 @@ keyboard: {
 chalkboard: {
     // optionally load pre-recorded chalkboard drawing from file
     src: "chalkboard.json",
+    toggleChalkboardButton: { left: "60px", bottom: "30px", top: "auto", right: "auto" },
+    toggleNotesButton: { left: "90px", bottom: "30px", top: "auto", right: "auto" },
 }
