@@ -141,11 +141,7 @@ section .paragraph {
     font-size: 20pt;
 }
 
-section .dlist {
-    font-size: 18pt;
-}
-
-section .ulist {
+section .dlist, section .ulist, section .olist {
     font-size: 18pt;
 }
 
@@ -191,3 +187,6 @@ section .ulist {
     margin: initial;
 }
 
+.reveal .slides section .fragment.highlight-black.visible {
+    color: #000000;
+}

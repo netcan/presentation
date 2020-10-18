@@ -14,7 +14,7 @@
 :revealjs_fragmentInURL: true
 :icons: font
 :stem:
-罗能 {docdate} @Shanghai
+Netcan {docdate} @Shanghai
 
 [subtitle]#template <typename 😀>#
 
@@ -714,5 +714,19 @@ NOTE: 1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::a
 2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 `IN::template append`
 
 == QuickSort
+[%step]
+* 选取表中Pivot元素，以Pivot为划分点 [.fragment.blue]#Filter操作#
+** 小于Pivot的所有元素放到左边形成新表
+** 大于等于Pivot的所有元素放到右边形成新表
+* 对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 [.fragment.blue]#Fold操作#
 
+[%step]
+. {[.fragment.highlight-current-blue]#40#, 80, 30, 90, 10, 70, 50}
+. {{[.fragment.highlight-current-blue]#30#, 10}, 40, {80, 90, 70, 50}}
+. {{{10}, 30}, 40, {[.fragment.highlight-current-blue]#80#, 90, 70, 50}}
+. {{{10}, 30}, 40, {{[.fragment.highlight-current-blue]#70#, 50}, 80, {90}}}
+. {{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}
+. {10, 30, 40, 50, 70, 80, 90}
+
+=== QuickSort
 
