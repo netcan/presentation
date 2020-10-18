@@ -340,6 +340,86 @@ struct TypeList {
 <2> 输出类型，Ts... 表示展开 [.blue]#模板参数包#，展开后为T1, T2, T3, ...
 <3> 列表长度，`sizeof...` 操作符求参数包个数
 
+[.columns]
+=== 值与类型
+[.column]
+--
+[.fragment]
+[source,cpp]
+----
+TypeList<true, false> d; // template argument for template type parameter must be a type
+----
+
+[.fragment]
+icon:question[role="orange"]
+什么是值
+
+[.fragment]
+值是常量
+
+[.fragment]
+icon:question[role="orange"]
+什么是类型
+
+[.fragment]
+类型是值的集合
+
+
+[.fragment]
+icon:question[role="orange"]
+值与类型如何转换
+
+[.fragment]
+一一映射，就能相互转换
+
+[.fragment]
+[source,cpp]
+----
+template<class T, T v> // <1>
+struct integral_constant {
+    constexpr static T value = v; // <2>
+};
+----
+--
+
+[.column]
+--
+[.fragment]
+<1> 指定类型，与具体的值
+<2> 存储其值
+
+[.fragment]
+值转换成类型：
+
+[.fragment]
+[source,cpp]
+----
+using true_type = integral_constant<bool, true>;
+using false_type = integral_constant<bool, false>;
+----
+
+[.fragment]
+类型转换成值：
+
+[.fragment]
+[source,cpp]
+----
+true_type::value  // true
+false_type::value // false
+----
+
+[.fragment]
+融入类型体系
+
+[.fragment]
+[source,cpp]
+----
+TypeList<true_type, false_type> d; // Ok
+----
+
+--
+
+
 === TypeList
 基本操作
 
@@ -659,7 +739,7 @@ class Elem {
 
     using Found = Fold_t<IN, std::false_type, FindE>; // <3>
 public:
-    static constexpr bool value = Found::value; // <4>
+    constexpr static bool value = Found::value; // <4>
 };
 
 template<typename IN, typename E>
