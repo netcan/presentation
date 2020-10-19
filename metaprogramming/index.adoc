@@ -4,8 +4,8 @@
 :revealjs_plugins: ../presentation_plugins.js
 :revealjs_plugins_configuration: ../presentation_plugins_conf.js
 :revealjs_theme: serif
-:highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/atom-one-light.css
-:highlightjs-languages: cpp
+:highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/github-gist.css
+:highlightjs-languages: cpp,fortran,haskell
 :source-highlighter: highlightjs
 :revealjs_history: true
 :revealjs_pdfseparatefragments: false
@@ -347,7 +347,7 @@ struct TypeList {
 [.fragment]
 [source,cpp]
 ----
-TypeList<true, false> d; // template argument for template type parameter must be a type
+using BoolSet = TypeList<true, false>; // template argument for template type parameter must be a type
 ----
 
 [.fragment]
@@ -375,7 +375,7 @@ icon:question[role="orange"]
 [.fragment]
 [source,cpp]
 ----
-template<class T, T v> // <1>
+template<typename T, T v> // <1>
 struct integral_constant {
     constexpr static T value = v; // <2>
 };
@@ -414,7 +414,7 @@ false_type::value // false
 [.fragment]
 [source,cpp]
 ----
-TypeList<true_type, false_type> d; // Ok
+using BoolSet = TypeList<true_type, false_type>; // Ok
 ----
 
 --
@@ -506,9 +506,8 @@ TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
 .Sort
 [source,cpp]
 ----
-template< class RandomIt, class Compar>
-void sort(RandomIt first, RandomIt last,
-    Compare comp); // <1>
+template<typename RandomIt, typename Compar>
+void sort(RandomIt first, RandomIt last, Compare comp); // <1>
 ----
 
 [.fragment]
@@ -559,11 +558,54 @@ filter([🍔, 🍟, 🍗, 🍿], 素食) [.fragment]#=> [🍟, 🍿]#
 [.fragment]
 fold([🍔, 🍟, 🍗, 🍿], 🍺, 吃) [.fragment]#=> 💩#
 
+
 == 高阶函数
 [quote, Conor Hoekstra, 'https://github.com/codereport/Talks/raw/master/2020-09-CppCon/SICP/Structure%20and%20Interpretation%20of%20Computer%20Programs%20-%20SICP.pdf[Structure and Interpretation of Computer Programs - SICP]']
 ____
 Richard Waters (1979) developed a program that automatically analyzes traditional Fortran programs, viewing them in terms of *maps*, *filters*, and *accumulations*. He found that fully *90 percent* of the code in the Fortran Scientific Subroutine Package fits neatly into this paradigm. One of the reasons for the success of Lisp as a programming language is that lists provide a standard medium for expressing ordered collections so that they can be manipulated using higher-order operations. The programming language APL owes much of its power and appeal to a similar choice. In APL all data are represented as arrays, and there is a universal and convenient set of generic operators for all sorts of array operations.
 ____
+
+[.notes]
+--
+MapReduce
+--
+
+=== 消除for循环
+[.fragment]
+[source,fortran]
+----
+SUBROUTINE example ( D, N, M, dirVs, ret )
+  INTEGER i, j, k, D, N, M, len
+  INTEGER ia(M), ret(D,N), dirVs(M,D)
+  DO i = 1, N
+    len = 0
+    DO k = 1, M
+      IF( test(i,k) ) THEN
+        len     = len + 1
+        ia(len) = k
+    ENDIF  ENDDO
+    DO j = 1, D
+      ret(j, i) = 0
+      DO k = 1, len
+        ret(j,i) = ret(j,i) XOR dirVs(ia(k), j)
+      ENDDO
+      IF(i .GT. 1)
+        ret(j,i) = ret(j,i) XOR ret(j,i-1)
+    ENDDO
+ENDDO END
+----
+
+[.fragment]
+[source,haskell,subs="none"]
+----
+example n m dirVs = --  d×m n×d
+    let lbody i = (let ia     = <mark>filter</mark> (test i) [0..m-1]
+                       xorV v = <mark>fold</mark> xor 0 [v!j| j<-ia]
+                  in <mark>map</mark> xorV dirVs)
+            ret = <mark>map</mark> lbody [1..n]
+            e   = replicate (length dirVs) 0
+    in tail (<mark>scan</mark> (zipWith xor) e ret)
+----
 
 === Map实现
 [source.fragment, cpp]
@@ -1288,11 +1330,12 @@ struct SavePath {
             typename PATH_PAIR::second_type::template exportTo<PathStorage>>; // <1>
 };
 
-using SavedPaths = Map_t<AllNonEmptyPaths, SavePath>;
+using SavedPaths = Map_t<AllNonEmptyPaths, SavePath>; // <2>
 ----
 
 [.fragment]
 <1> 路径数据转发至 PathStorage 类，触发存储
+<2> SavedPath即最短路径表
 
 === 生成编译时、运行时接口
 [.fragment]
@@ -1331,6 +1374,28 @@ constexpr static Path<NODE_TYPE> getPath(NODE_TYPE from, NODE_TYPE to) { // <3>
 <1> 当FROM/TARGET与表项匹配时，返回路径 result
 <2> 遍历查表动作，直到找到路径为止
 <3> 供运行时使用
+
+=== 最终效果
+[source,cpp]
+----
+template<char ID>
+struct Node { constexpr static char id = ID; };
+using A = Node<'A'>;
+using B = Node<'B'>;
+using C = Node<'C'>;
+using D = Node<'D'>;
+using E = Node<'E'>;
+
+using g = Graph<
+    link(node(A) -> node(B) -> node(C) -> node(D)),
+    link(node(A) -> node(C)),  // test shortest path: A -> C -> D
+    link(node(B) -> node(A)),  // test cycle
+    link(node(A) -> node(E))>; // test D -> E unreachable
+
+static_assert(g::getPath('A', 'D').sz == 3);    // compile-time test
+auto path = g::getPath(argv[1][0], argv[2][0]); // runtime test
+std::cout << " path size: " << path.sz << std::endl;
+----
 
 == 语言发展完善体验
 

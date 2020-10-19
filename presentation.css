@@ -1,4 +1,14 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+.reveal {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 40px;
+    font-weight: normal;
+    color: #000;
+}
+
 .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
+    font-family: inherit;
     text-transform: none;
 }
 
@@ -100,7 +110,9 @@ section[data-state="thank"] h2 {
 }
 
 /* Inline code */
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
 .reveal code {
+    font-family: 'Source Code Pro', monospace;
     border-radius: 5px;
     padding: 1px 7px;
     border: 1px solid rgb(162 142 142 / 0.8);
@@ -110,6 +122,7 @@ section[data-state="thank"] h2 {
 }
 
 .reveal pre {
+    font-family: 'Source Code Pro', monospace;
 	width: 100%;
 	margin: 10px auto;
 }
@@ -129,10 +142,11 @@ section[data-state="thank"] h2 {
     text-align: left;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 .quoteblock blockquote:before {
     content: "\201C";
     float: left;
-    font-family: sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 2.75em;
     font-weight: bold;
     font-style: normal;
@@ -211,7 +225,7 @@ section .dlist, section .ulist, section .olist {
 }
 
 .reveal table tbody tr:last-child th, .reveal table tbody tr:last-child td {
-    padding: .0em .2em 0 .2em;
+    /* padding: .0em .2em 0 .2em; */
     vertical-align: middle;
 }
 
