@@ -168,15 +168,15 @@ T max(T&amp;&amp; a, T&amp;&amp; b) {
     return a &gt; b ? a : b;
 }</code></pre></div></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">max(0, "123"); // error: no matching function for call to 'max(int, const char [4])'</code></pre></div></div>
-<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;class RandomIt, class Compare&gt;
+<div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename RandomIt, typename Compare&gt;
 void sort(RandomIt first, RandomIt last, Compare comp);</code></pre></div></div>
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">int values[] = { 88, 56, 100, 2, 25 };
 std::sort(values, values + 5, [](int a, int b) {
     return a &lt; b;
 });</code></pre></div></div></div></section><section id="_泛型容器_宏"><h2>泛型容器 &amp; 宏</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// collection.h
 struct Collection_ ## TYPE {
- TYPE *array; <i class="conum" data-value="1"></i><b>(1)</b>
- size_t size, n;
+    TYPE *array; <i class="conum" data-value="1"></i><b>(1)</b>
+    size_t size, n;
 };
 
 #ifdef INSTANCE <i class="conum" data-value="2"></i><b>(2)</b>
@@ -199,7 +199,8 @@ int main() {
     Collection_int lstInt = make_Collection_int(5); <i class="conum" data-value="2"></i><b>(2)</b>
     Collection_double lstDouble = make_Collection_double(5);
 }</code></pre></div></div>
-<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>实例化类型 <code>Collection_int</code>, <code>Collection_string</code></td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>实例化成员函数</td></tr></table></div></div></section><section id="_泛型容器_模板"><h2>泛型容器 &amp; 模板</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// collection.h
+<div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>实例化类型 <code>Collection_int</code>, <code>Collection_string</code></td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>实例化成员函数</td></tr></table></div>
+<div class="admonitionblock note fragment"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">这也称为预处理多态技术</td></tr></table></div></div></section><section id="_泛型容器_模板"><h2>泛型容器 &amp; 模板</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// collection.h
 template &lt;typename T&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 class Collection {
     T* array;
@@ -317,7 +318,7 @@ struct TypeList {
 <div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">TypeList&lt;int, char&gt;::exportTo&lt;std::tuple&gt; // std::tuple&lt;int, char&gt;
 TypeList&lt;int, char&gt;::exportTo&lt;std::variant&gt; // std::variant&lt;int, char&gt;</code></pre></div></div></div></section></section>
 <section><section id="_高阶函数"><h2>高阶函数</h2><div class="slide-content"><div class="paragraph"><p>数学和计算机科学定义如下高阶函数：</p></div><div class="ulist fragment"><ul><li><p>输入的参数为函数</p></li><li><p>输出的参数为函数</p></li></ul></div><div class="paragraph fragment"><p>常用到的有：</p></div><div class="listingblock fragment"><div class="title">Sort</div>
-<div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename RandomIt, typename Compar&gt;
+<div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename RandomIt, typename Compare&gt;
 void sort(RandomIt first, RandomIt last, Compare comp); <i class="conum" data-value="1"></i><b>(1)</b></code></pre></div></div><div class="colist arabic fragment"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>sort为高阶函数，其输入参数为 <code>comp</code> 函数</td></tr></table></div></div></section><section id="_map高阶函数"><h2>Map高阶函数</h2><div class="slide-content"><div class="ulist"><ul><li><p>输入一个列表和函数 f</p></li><li><p>输出对列表中的每个元素进行f函数调用后的列表</p></li></ul></div>
 <div class="imageblock fragment" style=""><img src="Mapping-steps-loillibe-new.gif" alt="100%" width="80%"></div></div></section><section id="_filter高阶函数"><h2>Filter高阶函数</h2><div class="slide-content"><div class="ulist"><ul><li><p>输入一个列表和谓词函数P</p></li><li><p>对列表中的每个元素进行过滤操作，输出只保留谓词函数为真的元素的列表</p></li></ul></div>
 <div class="imageblock fragment" style=""><img src="Filter-steps-loillierbe.gif" alt="100%" width="80%"></div></div></section><section id="_fold高阶函数" class="columns"><h2>Fold高阶函数</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="ulist"><ul><li><p>输入一个列表，二元函数f，和初值init</p></li><li><p>输出一个元素，结果为列表每个元素与二元函数递归调用后的结果</p></li></ul></div></div></div>

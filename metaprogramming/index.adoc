@@ -72,7 +72,7 @@ max(0, "123"); // error: no matching function for call to 'max(int, const char [
 [.fragment]
 [source,cpp]
 ----
-template<class RandomIt, class Compare>
+template<typename RandomIt, typename Compare>
 void sort(RandomIt first, RandomIt last, Compare comp);
 ----
 
@@ -90,8 +90,8 @@ std::sort(values, values + 5, [](int a, int b) {
 ----
 // collection.h
 struct Collection_ ## TYPE {
- TYPE *array; // <1>
- size_t size, n;
+    TYPE *array; // <1>
+    size_t size, n;
 };
 
 #ifdef INSTANCE // <2>
@@ -126,6 +126,9 @@ int main() {
 [.fragment]
 <1> 实例化类型 `Collection_int`, `Collection_string`
 <2> 实例化成员函数
+
+[.fragment]
+NOTE: 这也称为预处理多态技术
 
 === 泛型容器 & 模板
 [source,cpp]
@@ -506,7 +509,7 @@ TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
 .Sort
 [source,cpp]
 ----
-template<typename RandomIt, typename Compar>
+template<typename RandomIt, typename Compare>
 void sort(RandomIt first, RandomIt last, Compare comp); // <1>
 ----
 
