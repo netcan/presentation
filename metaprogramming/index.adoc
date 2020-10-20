@@ -4,12 +4,12 @@
 :revealjs_plugins: ../presentation_plugins.js
 :revealjs_plugins_configuration: ../presentation_plugins_conf.js
 :revealjs_theme: serif
+:highlightjsdir: .
 :highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/github-gist.css
-:highlightjs-languages: cpp,fortran,haskell
 :source-highlighter: highlightjs
 :revealjs_history: true
 :revealjs_pdfseparatefragments: false
-:revealjs_transition: zoom
+:revealjs_transition: slide
 :revealjs_slideNumber: c/t
 :revealjs_fragmentInURL: true
 :icons: font
