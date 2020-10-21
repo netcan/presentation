@@ -18,6 +18,13 @@ Netcan {docdate} @Shanghai
 
 [subtitle]#template <typename 😀>#
 
+== Goal
+* 揭露C++模板元编程能力，系统性总结
+* 对于热爱编程、设计的人提供了更多选择
+* 函数式编程介绍
+* Map/Filter/Fold原子操作消除for循环
+* 思想碰撞
+
 == 模板介绍
 
 [%step]
@@ -214,7 +221,7 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 函数式编程范式
 
 [%step]
-* 无副作用纯函数
+* 无副作用纯函数，Immutable
 * 延迟计算
 * 模式匹配
 
@@ -573,7 +580,7 @@ ____
 MapReduce
 --
 
-=== 消除for循环
+=== 消除for循环（Sobol Sequence）
 [.fragment]
 [source,fortran]
 ----
@@ -1400,7 +1407,29 @@ auto path = g::getPath(argv[1][0], argv[2][0]); // runtime test
 std::cout << " path size: " << path.sz << std::endl;
 ----
 
+[.columns]
 == 语言发展完善体验
+[.column]
+--
+模板元编程
+[%step]
+* 1986 C++引入模板
+* C++98 模板实例化
+* C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits
+* C++14 常量模板、decltype(auto)、integer_sequence
+* C++17 折叠表达式、CTAD、auto非类型参数、void_t
+* C++20 Concept、lambda模板参数
+--
+
+[.column]
+--
+constexpr
+[%step]
+* C++11 引入constexpr简单函数
+* C++14 放开constexpr约束
+* C++17 if constexpr、constexpr lambda
+* C++20 constexpr容器、constexpr new、constexpr try-catch、constexpr虚函数
+--
 
 == 结论
 [%step]
