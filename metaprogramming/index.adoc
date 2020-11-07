@@ -1,4 +1,4 @@
-= C++模板元编程
+= Modern C++模板元编程
 :customcss: ../presentation.css
 :revealjsdir: ../node_modules/reveal.js
 :revealjs_plugins: ../presentation_plugins.js
@@ -18,12 +18,24 @@ Netcan {docdate} @Shanghai
 
 [subtitle]#template <typename 😀>#
 
-== Goal
-* 揭露C++模板元编程能力，系统性总结
-* 对于热爱编程、设计的人提供了更多选择
-* 函数式编程介绍
-* Map/Filter/Fold原子操作消除for循环
-* 思想碰撞
+== 自我介绍
+
+* 96年出生，18年毕业于合肥工业大学本科
+* 高级工程师
+* 知乎 https://www.zhihu.com/column/c_1289690410462785536[《魅力C++》] 专栏作者
+* 兴趣：CS, OO, FP, Design, Coding, Writing
+* Skills: C/C++/Rust, Haskell/Scheme, Bash/Python/Javascript/PHP
+
+== 议程
+* 什么是模板元编程
+** 模板历史
+** 元编程与函数式编程范式
+* 元编程基石TypeList，原子操作Map/Filter/Fold
+* 模板元编程实战
+** 快速排序
+** 图DSL：全局最短路径
+** 构建TaskDSL: https://github.com/taskflow/taskflow/pull/222[https://github.com/taskflow/taskflow/pull/222]
+* 结论
 
 == 模板介绍
 
@@ -121,7 +133,7 @@ Collection_ ## TYPE make_Collection_ ## TYPE(size_t sz) {
 #include "collection.h"
 #undef TYPE
 
-#define TYPE string // <1>
+#define TYPE double// <1>
 #include "collection.h"
 #undef TYPE
 
@@ -131,7 +143,7 @@ int main() {
 }
 ----
 [.fragment]
-<1> 实例化类型 `Collection_int`, `Collection_string`
+<1> 实例化类型 `Collection_int`, `Collection_double`
 <2> 实例化成员函数
 
 [.fragment]
@@ -700,6 +712,7 @@ NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `t
 * TypeList去重: `Unique`
 * 快速排序: `QuickSort`
 * 求图全局最短路径，动静结合
+* 构建TaskDSL
 
 == Concat
 连接两个TypeList
@@ -1407,6 +1420,63 @@ auto path = g::getPath(argv[1][0], argv[2][0]); // runtime test
 std::cout << " path size: " << path.sz << std::endl;
 ----
 
+== 构建TaskDSL
+PR链接： https://github.com/taskflow/taskflow/pull/222[https://github.com/taskflow/taskflow/pull/222]
+[source,cpp]
+----
+tf::Executor executor;
+tf::Taskflow taskflow("simple");
+auto A = taskflow.emplace([]() { std::cout << "TaskA\n"; });  //          +---+
+auto B = taskflow.emplace([]() { std::cout << "TaskB\n"; });  //    +---->| B |-----+
+auto C = taskflow.emplace([]() { std::cout << "TaskC\n"; });  //    |     +---+     |
+auto D = taskflow.emplace([]() { std::cout << "TaskD\n"; });  //  +---+           +-v-+
+                                                              //  | A |           | D |
+A.precede(B);  // B runs after A                              //  +---+           +-^-+
+A.precede(C);  // C runs after A                              //    |     +---+     |
+B.precede(D);  // D runs after B                              //    +---->| C |-----+
+C.precede(D);  // D runs after C                              //          +---+
+executor.run(taskflow).wait();
+----
+
+[source,cpp]
+----
+tf::Executor executor;
+tf::Taskflow taskflow("simple");
+def_task((A), { std::cout << "TaskA\n"; }); //          +---+
+def_task((B), { std::cout << "TaskB\n"; }); //    +---->| B |-----+
+def_task((C), { std::cout << "TaskC\n"; }); //    |     +---+     |
+def_task((D), { std::cout << "TaskD\n"; }); //  +---+           +-v-+
+                                            //  | A |           | D |
+taskbuild(                                  //  +---+           +-^-+
+  task(A)                                   //    |     +---+     |
+    ->fork(B, C)                            //    +---->| C |-----+
+    ->task(D)                               //          +---+
+)(taskflow);
+executor.run(taskflow).wait();
+----
+
+=== TaskDSL: Context
+[source,cpp]
+----
+int counter;
+struct Context {
+    int &rcounter; // use counter(borrow)
+} context{counter};
+
+def_task((A, Context), { rcounter=0; });
+def_task((B, Context), { rcounter++; });
+def_task((C, Context), {
+    if (rcounter != 5) std::cout << "loops again (goes to B)\n"; return 0;
+    std::cout << "breaks the loop (goes to D)\n"; return 1;
+});
+def_task((D, Context), { std::cout << "done with counter equal to " << rcounter << '\n'; });
+
+auto tasks = taskbuild(
+    task(A) -> task(B) -> task(C),
+    task(C) -> fork(B, D)
+)(taskflow, context);
+----
+
 [.columns]
 == 语言发展完善体验
 [.column]
@@ -1428,7 +1498,7 @@ constexpr
 * C++11 引入constexpr简单函数
 * C++14 放开constexpr约束
 * C++17 if constexpr、constexpr lambda
-* C++20 constexpr容器、constexpr new、constexpr try-catch、constexpr虚函数
+* C++20 constexpr容器、constexpr new、constexpr try-catch、constexpr虚函数、consteval/constinit
 --
 
 == 结论
@@ -1438,7 +1508,19 @@ constexpr
 - 设计灵活组合、类型安全、容易使用的接口
 - 领域特定语言DSL
 
+== Reference
+* https://book.douban.com/subject/1755195/[_Modern C++ Design_]
+* http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html[Introduction to C++ Metaprogramming]
+* https://www.youtube.com/watch?v=PJwd4JLYJJY[CppCon 2017: Ben Deane & Jason Turner “constexpr ALL the Things!”]
+* https://www.youtube.com/watch?v=7oV7hiAsVTI[CppCon 2020 - Structure and Interpretation of Computer Programs: SICP - Conor Hoekstra]
+* http://www.vishalchovatiya.com/c-template-a-quick-uptodate-look/[C\++ Template: A Quick UpToDate Look(C++11/14/17/20)]
+* https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/[_Category Theory for Programmers_]
+* https://web.mit.edu/alexmv/6.037/sicp.pdf[_Structure and Interpretation of Computer Programs - MIT_]
+* http://learnyouahaskell.com/[_Learn You a Haskell_]
+
 [state=thank]
 == Thank you!
 
+[state=thank]
+== Question?
 
