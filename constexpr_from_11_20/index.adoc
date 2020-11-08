@@ -27,7 +27,7 @@ include::../common/self_introduction.adoc[]
 * 编译时计算（元编程）
 * 演进历史
 * constexpr vs 模板元
-* 额外能力
+* 深入constexpr
 * 应用
 * 展望未来
 * 结论
@@ -37,7 +37,7 @@ include::../common/self_introduction.adoc[]
 * 编译时多态 (eg. Policy class, Tag Dispatcher, CRTP)
 * 值计算
 * 类型安全 (eg. 单位运算, Phantom Types)
-* Domain specific languages
+* Embedded Domain specific languages
 
 === 编译时计算（元编程）& 流派
 * 模板元编程
@@ -53,9 +53,9 @@ include::../common/self_introduction.adoc[]
 * 1986 C++引入模板
 * C++98 模板实例化
 * C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits
-* C++14 常量模板、decltype(auto)、integer_sequence
-* C++17 折叠表达式、CTAD、auto非类型参数、void_t
-* C++20 Concept、lambda模板参数、放宽非类型参数
+* C++14 decltype(auto)、integer_sequence
+* C++17 CTAD、auto非类型参数、void_t
+* C++20 Concept、放宽非类型参数
 --
 
 [.column]
@@ -65,7 +65,7 @@ constexpr
 * C++11 引入constexpr简单函数
 * C++14 放开constexpr约束, 模板变量
 * C++17 if constexpr、constexpr lambda、fold expression
-* C++20 constexpr容器、constexpr new、constexpr destructor、constexpr virtual、consteval/constinit
+* C++20 constexpr容器、constexpr new、constexpr destructor、constexpr virtual、consteval/constinit、lambda模板参数
 * constexpr STL algorithms
 --
 
@@ -443,7 +443,7 @@ constexpr http://redd.it/jp7k0u[http://redd.it/jp7k0u]
 --
 简单设计：constexpr
 
-* 通过所有测试(static_assert, no ub) icon:check-circle[role="green"]
+* 通过所有测试(static_assert) icon:check-circle[role="green"]
 * 没有重复，易于重用 icon:check-circle[role="green"]
 * 表达意图，易于理解（~80 lines） icon:check-circle[role="green"]
 * 没有冗余，避免过度设计 icon:check-circle[role="green"]
@@ -453,25 +453,40 @@ constexpr http://redd.it/jp7k0u[http://redd.it/jp7k0u]
 === constexpr vs 模板元编程
 [.column]
 --
-模板元优势
+模板元优缺点
 
-* 体系成熟，参考资料多
-* 拥有大量的库
-* TypeList可以任意扩容
+* 运行时效率
+* 体系成熟，拥有大量的库 +
+参考资料多
+* TypeList可以任意扩容（可变模板参数）
+* 可读性差，维护性差
+* 编译错误信息难懂；编译速度慢；跨平台（编译器）弱
 --
 
 [.column]
 --
-constexpr劣势
+constexpr优缺点
 
-* 新兴势力，参考资料少，待挖掘
-* 生态待完善
+* 运行时效率
+* 新兴势力，生态待完善 +
+参考资料少，挖掘空间大
 * C++20之前需要提前计算容器大小
+* 可读性强，维护性强，更少的魔法
+* 编译错误信息易懂；编译速度快；跨平台（编译器）强
 --
 
-[%conceal]
 == Constexpr all the things!
 image::constexpr-all-the-things.png[80%,80%]
+
+== 深入constexpr
+* constexpr常量
+* constexpr函数、lambda
+* consteval/constinit
+* if constexpr
+* fold expression
+* constexpr容器、算法
+* constexpr destructor
+* 检测Undefined Behaviour
 
 
 == Reference
