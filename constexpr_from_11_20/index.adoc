@@ -1,0 +1,479 @@
+= CONSTEXPR 从 11 到 20
+:customcss: ../presentation.css
+:revealjsdir: ../node_modules/reveal.js
+:revealjs_plugins: ../presentation_plugins.js
+:revealjs_plugins_configuration: ../presentation_plugins_conf.js
+:revealjs_theme: serif
+:highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/github-gist.css
+:source-highlighter: highlightjs
+:highlightjs-languages: cpp,x86asm
+:revealjs_history: true
+:revealjs_pdfseparatefragments: false
+:revealjs_transition: slide
+:revealjs_slideNumber: c/t
+:revealjs_fragmentInURL: true
+:icons: font
+:stem:
+Netcan {docdate} @Shanghai
+
+[subtitle]#constexpr auto 😀#
+
+template metaprogramming is dead +
+long live constexpr
+
+include::../common/self_introduction.adoc[]
+
+== 议程
+* 编译时计算（元编程）
+* 演进历史
+* constexpr vs 模板元
+* 额外能力
+* 应用
+* 展望未来
+* 结论
+
+== 编译时计算（元编程）
+* 零成本抽象
+* 编译时多态 (eg. Policy class, Tag Dispatcher, CRTP)
+* 值计算
+* 类型安全 (eg. 单位运算, Phantom Types)
+* Domain specific languages
+
+=== 编译时计算（元编程）& 流派
+* 模板元编程
+* Constexpr all the things!
+* 两者结合
+
+[.columns]
+== 演进历史
+[.column]
+--
+模板元编程
+
+* 1986 C++引入模板
+* C++98 模板实例化
+* C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits
+* C++14 常量模板、decltype(auto)、integer_sequence
+* C++17 折叠表达式、CTAD、auto非类型参数、void_t
+* C++20 Concept、lambda模板参数、放宽非类型参数
+--
+
+[.column]
+--
+constexpr
+
+* C++11 引入constexpr简单函数
+* C++14 放开constexpr约束, 模板变量
+* C++17 if constexpr、constexpr lambda、fold expression
+* C++20 constexpr容器、constexpr new、constexpr destructor、constexpr virtual、consteval/constinit
+* constexpr STL algorithms
+--
+
+[.columns]
+== constexpr vs 模板元编程
+[.column]
+--
+BrainFuck语言
+
+* 图灵完备
+* 8种操作符
+* DSL
+
+https://fatiherikli.github.io/brainfuck-visualizer/#PisrKysrKysrWzwrKysrKysrKys+LV08LiAgICAgICAgICAgICAgICAgOyBICj4+KysrKysrKysrK1s8KysrKysrKysrKz4tXTwrLiAgICAgICAgICAgIDsgZQo+PisrKysrKysrK1s8KysrKysrKysrKysrPi1dPC4gICAgICAgICAgICA7IGwKPj4rKysrKysrKytbPCsrKysrKysrKysrKz4tXTwuICAgICAgICAgICAgOyBsCj4+KysrKysrKysrK1s8KysrKysrKysrKys+LV08Ky4gICAgICAgICAgIDsgbwo+PisrKytbPCsrKysrKysrPi1dPC4gICAgICAgICAgICAgICAgICAgICA7Cj4+KysrKysrKysrKytbPCsrKysrKysrPi1dPC0uICAgICAgICAgICAgIDsgVwo+PisrKysrKysrKytbPCsrKysrKysrKysrPi1dPCsuICAgICAgICAgICA7IG8KPj4rKysrKysrKysrWzwrKysrKysrKysrKys+LV08LS0tLS0tLiAgICAgOyByCj4+KysrKysrKysrWzwrKysrKysrKysrKys+LV08LiAgICAgICAgICAgIDsgbAo+PisrKysrKysrKytbPCsrKysrKysrKys+LV08LiAgICAgICAgICAgICA7IGQKPj4rKysrKytbPCsrKysrKz4tXTwtLS0uICAgIC[brainfuck-visualizer]
+--
+
+[.column]
+--
+[cols="2"]
+|===
+| > |	++ptr;
+| < |	--ptr;
+| + |	++*ptr;
+| - |	--*ptr;
+| . |	putchar(*ptr);
+| , |	*ptr = getchar();
+| [ |	while (*ptr) {
+| ] |	}
+
+|===
+--
+
+=== BrainFuck: Hello world
+[source,cpp]
+----
+puts( R"(
+    >++++++++[<+++++++++>-]<.             ; H   (8*9     = 72)
+    >>++++++++++[<++++++++++>-]<+.        ; e   (10*10+1 = 101)
+    >>+++++++++[<++++++++++++>-]<.        ; l   (9*12    = 108)
+    >>+++++++++[<++++++++++++>-]<.        ; l   (9*12    = 108)
+    >>++++++++++[<+++++++++++>-]<+.       ; o   (10*11+1 = 111)
+    >>++++[<++++++++>-]<.                 ; ' ' (4*8     = 32)
+    >>+++++++++++[<++++++++>-]<-.         ; W   (11*8-1  = 87)
+    >>++++++++++[<+++++++++++>-]<+.       ; o   (10*11+1 = 111)
+    >>++++++++++[<++++++++++++>-]<------. ; r   (10*12-6 = 114)
+    >>+++++++++[<++++++++++++>-]<.        ; l   (9*12    = 108)
+    >>++++++++++[<++++++++++>-]<.         ; d   (10*10   = 100)
+    >>++++++[<++++++>-]<---.              ; !   (6*6-3   = 33)
+)"_brain_fuck );
+----
+
+== BrainFuck编译器：模板元解法
+Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+
+基础元数据结构
+[source,cpp]
+----
+template<char c>
+using Cell = std::integral_constant<char, c>;
+
+template<size_t P = 0, bool INLOOP = false, typename ...Cells>
+struct Machine {
+    using type = Machine<P, INLOOP, Cells...>;
+    constexpr static size_t InLoop = INLOOP;
+};
+----
+
+=== BrainFuck编译器：模板元解法
+Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+
+相关操作
+[source,cpp,subs="verbatim,quotes"]
+----
+namespace MachineTrait {
+    template<size_t N>
+    struct *InitMachine*: Concat_t<Machine<0, 0, Cell<0>>, typename *InitMachine<N-1>*::type> {};
+    template<> struct *InitMachine<0>: Machine<0, 0, Cell<0>>* {};
+
+    template<typename MACHINE> struct Inc;
+    template<typename MACHINE> using Inc_t = typename Inc<MACHINE>::type;
+    template<size_t PC, bool INLOOP, typename C, typename... Cells>
+    struct Inc<Machine<PC, INLOOP, C, Cells...>>:
+        Concat_t<Machine<PC, INLOOP, C>, Inc_t<Machine<PC - 1, INLOOP, Cells...>>> {};
+    template<bool INLOOP, typename C, typename... Cells>
+    struct Inc<Machine<0, INLOOP, C, Cells...>>:
+        Machine<0, INLOOP, Cell< *C::value + 1* >, Cells...> {};
+
+    template<typename MACHINE>
+    struct Left;
+    template<typename MACHINE>
+    using Left_t = typename Left<MACHINE>::type;
+    template<size_t PC, bool INLOOP, typename... Cells>
+    struct Left<Machine<PC, INLOOP, Cells...>>:
+        Machine< *PC-1*, INLOOP, Cells...> {};
+};
+----
+
+=== BrainFuck编译器：模板元解法
+Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+
+解析BrainFuck代码：基本操作
+[source,cpp,subs="verbatim,quotes"]
+----
+template<typename MACHINE, bool skip, char ...cs>
+struct BrainFuck: MACHINE {};
+template<typename MACHINE, bool skip, char ...cs>
+using BrainFuck_t = typename BrainFuck<MACHINE, skip, cs...>::type;
+
+template<typename MACHINE, char ...cs>
+struct BrainFuck<MACHINE, false, *'+'*, cs...>:
+    BrainFuck_t<MachineTrait::Inc_t<MACHINE>, false, cs...> {};
+
+template<typename MACHINE, char ...cs>
+struct BrainFuck<MACHINE, false, *'-'*, cs...>:
+    BrainFuck_t<MachineTrait::Dec_t<MACHINE>, false, cs...> {};
+
+template<typename MACHINE, char ...cs>
+struct BrainFuck<MACHINE, false, *'<'*, cs...>:
+    BrainFuck_t<MachineTrait::Left_t<MACHINE>, false, cs...> {};
+
+template<typename MACHINE, char ...cs>
+struct BrainFuck<MACHINE, false, *'>'*, cs...>:
+    BrainFuck_t<MachineTrait::Right_t<MACHINE>, false, cs...> {};
+----
+
+=== BrainFuck编译器：模板元解法
+Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+
+解析BrainFuck代码：循环 & 分支
+[source,cpp,subs="verbatim,quotes"]
+----
+template<typename MACHINE, char ...cs>
+struct BrainFuck<MACHINE, false, *'['*, cs...> {
+    using EnableLoopedMachine = MachineTrait::EnableLoop_t<MACHINE>;
+
+    template<typename IN, bool = MachineTrait::IsZero_t<IN>::value>
+    struct Select: BrainFuck_t<IN, true, cs...> {}; // skip
+    template<typename IN> // loop
+    struct Select<IN, false>: BrainFuck_t<IN, false, cs...> {};
+
+    using Result = typename Select<EnableLoopedMachine>::type;
+
+    template<typename IN, bool = (! MachineTrait::IsZero_t<IN>::value && IN::InLoop)>
+    struct Loop: IN {};   // skip
+    template<typename IN> // continue
+    struct Loop<IN, true>: BrainFuck_t<IN, false, '[', cs...> {};
+
+    using type = typename Loop<Result>::type;
+};
+----
+
+=== BrainFuck编译器：模板元解法
+Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+
+保存结果
+[source,cpp]
+----
+template<size_t PC, bool INLOOP, typename ...Cells>
+inline const auto ToStr(Machine<PC, INLOOP, Cells...>) {
+    constexpr const static char str[] = { Cells::value ...  };
+    return str;
+}
+
+template<typename T, T... cs>
+constexpr auto operator ""_brain_fuck() {
+    using Machine = MachineTrait::InitMachine_t<15>;
+    using Result = BrainFuck_t<Machine, false, cs...>;
+
+    return ToStr(Result{});
+};
+----
+
+=== BrainFuck编译器：模板元解法
+Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+
+生成代码
+[source,x86asm,subs="verbatim,quotes"]
+----
+main:
+    subq    $8, %rsp
+    movl    $MachineTrait::ToStr<...>(Machine<...>)::str, %edi
+    call    puts
+    xorl    %eax, %eax
+    addq    $8, %rsp
+    ret
+MachineTrait::ToStr<...>(Machine<...>)::str:
+    .string *"Hello World!"*
+    .string ""
+    .string ""
+    .string ""
+----
+
+== BrainFuck编译器：constexpr解法
+Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
+
+基础数据结构
+[source,cpp]
+----
+template<size_t N>
+class Stream {
+public:
+    constexpr void push(char c) { data_[idx_++] = c; }
+    constexpr operator const char*() const { return data_; }
+    constexpr size_t size() { return idx_; }
+private:
+    size_t idx_{};
+    char data_[N]{};
+};
+----
+
+=== BrainFuck编译器：constexpr解法
+Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
+
+解析器
+[source,cpp]
+----
+template<typename STREAM>
+constexpr auto parse(const char* input, bool skip, char* cells,
+        size_t& pc, STREAM&& output) -> size_t {
+    const char* c = input;
+    while(*c) {
+        switch(*c) {
+            case '+': if (!skip) ++cells[pc];            break;
+            case '-': if (!skip) --cells[pc];            break;
+            case '.': if (!skip) output.push(cells[pc]); break;
+            case '>': if (!skip) ++pc;                   break;
+            case '<': if (!skip) --pc;                   break;
+            case '[': {
+                while (!skip && cells[pc] != 0)
+                    parse(c + 1, false, cells, pc, std::forward<STREAM>(output));
+                c += parse(c + 1, true, cells, pc, std::forward<STREAM>(output)) + 1;
+            } break;
+            case ']': return c - input;
+            default: break;
+        }
+        ++c;
+    }
+    return c - input;
+}
+----
+
+=== BrainFuck编译器：constexpr解法
+Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
+
+整合一起：
+[source,cpp]
+----
+constexpr size_t CELL_SIZE = 16;
+template<typename STREAM>
+constexpr auto parse(const char* input, STREAM&& output) -> STREAM&& {
+    char cells[CELL_SIZE]{};
+    size_t pc{};
+    parse(input, false, cells, pc, output);
+    return std::forward<STREAM>(output);
+}
+
+template<size_t OUTPUT_SIZE = 15>
+constexpr auto brain_fuck(const char* input) {
+    return parse(input, Stream<OUTPUT_SIZE>{});
+}
+----
+
+=== BrainFuck编译器：constexpr解法
+Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
+
+编译、运行时使用：
+[source,cpp]
+----
+// compile time
+constexpr auto res = brain_fuck(R"(
+    ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.
+    >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
+)");
+puts(res);
+
+// runtime
+if (argc > 1) puts(brain_fuck(argv[1]));
+----
+
+=== BrainFuck编译器：constexpr解法
+[source,cpp,subs="verbatim,quotes"]
+----
+template<size_t *OUTPUT_SIZE* = 15>
+constexpr auto brain_fuck(const char* input);
+----
+
+icon:question[role="orange"]
+若OUTPUT_SIZE过小，会怎么样
+
+image::brain_fuck_buffer_overflow.png[]
+
+icon:lightbulb-o[]
+编译报错，*不允许内存越界ub*
+
+=== BrainFuck编译器：constexpr解法
+[source,cpp,subs="verbatim,quotes"]
+----
+template<size_t *OUTPUT_SIZE* = 15>
+constexpr auto brain_fuck(const char* input);
+----
+
+icon:question[role="orange"]
+如何提前知道OUTPUT_SIZE所需要大小
+
+[source,cpp,subs="verbatim,quotes"]
+----
+// calculate output size
+constexpr auto *brain_fuck_output_size*(const char* input) -> size_t {
+    struct {
+        size_t sz{};
+        constexpr void push(...) { ++sz; }
+    } dummy;
+    return parse(input, dummy).sz + 1; // include '\0'
+}
+
+#define BRAIN_FUCK(in) brain_fuck< *brain_fuck_output_size(in)* >(in)
+constexpr auto res = BRAIN_FUCK(R"(
+    ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.
+    >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
+)");
+----
+
+== constexpr vs 模板元编程
+icon:question[role="orange"]
+编译时间
+
+image::brain_fuck_perf.png[]
+
+0.13s vs 4.088s ! 30x speed up icon:angle-double-up[role="red"]
+
+=== constexpr vs 模板元编程
+模板元 http://redd.it/jnz5p1[http://redd.it/jnz5p1]
+
+* Looks both *scary* and *exciting* at the same time. :P
+* After reading this code I gotta *remove C++* from the programming languages I know list.  Sweet mother of god this is *incredible*! :,)
+* C++ templates is a language within a language, now you have brainf*ck in templates, so it's a language withing a language within a language. It's languageception.
+* Nice, definitely *scary* stuff though.
+* Where does one learn to use templates like that? I have no idea what I'm looking at
+* Lots of mind altering drugs
+* From my experience, templates like this are *hard to casually read* even if you are the one who wrote them. It makes perfect sense when you are *creating the monstrosity* though.
+* Actually, for what it is, it's incredibly *readable*.
+* Awesome, Now make a c++ compiler with brainfuck :p
+* I've been planning on trying something similar with Ruby, to see if the C++ compiler can generate a minimal program.
+
+=== constexpr vs 模板元编程
+模板元 https://zhuanlan.zhihu.com/p/273805962[https://zhuanlan.zhihu.com/p/273805962], https://www.zhihu.com/question/334884938/answer/1557544809[https://www.zhihu.com/question/334884938]
+
+* 年轻人，没见识过面向脑容量编程吧
+* 高级语言比汇编还难读
+* 你是魔鬼吗
+* 好聪明的编译器
+* 机器进化成人了，简称人肉编译器...
+* 不至于不至于
+* 据说写BrainFuck会感觉brain被fuck了…
+
+=== constexpr vs 模板元编程
+constexpr http://redd.it/jp7k0u[http://redd.it/jp7k0u]
+
+* Amazing, very neat, show the *power* of constexpr functions, way more *readable* than template.
+* Wow. Your constexpr code is vastly more *readable* than the template metaprogramming one.
+
+[.columns]
+=== constexpr vs 模板元编程
+[.column]
+--
+简单设计：模板元
+
+* 通过所有测试(static_assert) icon:check-circle[role="green"]
+* 没有重复，易于重用 icon:check-circle[role="green"]
+* 表达意图，易于理解（~200 lines） icon:times[role="red"]
+* 没有冗余，避免过度设计 icon:ellipsis-h[role="orange"]
+--
+
+[.column]
+--
+简单设计：constexpr
+
+* 通过所有测试(static_assert, no ub) icon:check-circle[role="green"]
+* 没有重复，易于重用 icon:check-circle[role="green"]
+* 表达意图，易于理解（~80 lines） icon:check-circle[role="green"]
+* 没有冗余，避免过度设计 icon:check-circle[role="green"]
+--
+
+[.columns]
+=== constexpr vs 模板元编程
+[.column]
+--
+模板元优势
+
+* 体系成熟，参考资料多
+* 拥有大量的库
+* TypeList可以任意扩容
+--
+
+[.column]
+--
+constexpr劣势
+
+* 新兴势力，参考资料少，待挖掘
+* 生态待完善
+* C++20之前需要提前计算容器大小
+--
+
+[%conceal]
+== Constexpr all the things!
+image::constexpr-all-the-things.png[80%,80%]
+
+
+== Reference
+* http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html[Introduction to C++ Metaprogramming]
+

@@ -18,13 +18,7 @@ Netcan {docdate} @Shanghai
 
 [subtitle]#template <typename 😀>#
 
-== 自我介绍
-
-* 96年出生，18年毕业于合肥工业大学本科
-* 高级工程师
-* 知乎 https://www.zhihu.com/column/c_1289690410462785536[《魅力C++》] 专栏作者
-* 兴趣：CS, OO, FP, Design, Coding, Writing
-* Skills: C/C++/Rust, Haskell/Scheme, Bash/Python/Javascript/PHP
+include::../common/self_introduction.adoc[]
 
 == 议程
 * 什么是模板元编程
@@ -1496,9 +1490,10 @@ auto tasks = taskbuild(
 constexpr
 [%step]
 * C++11 引入constexpr简单函数
-* C++14 放开constexpr约束
+* C++14 放开constexpr约束, 模板变量
 * C++17 if constexpr、constexpr lambda
 * C++20 constexpr容器、constexpr new、constexpr try-catch、constexpr虚函数、consteval/constinit
+* constexpr STL algorithms
 --
 
 == 结论

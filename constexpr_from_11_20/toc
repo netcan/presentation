@@ -1,0 +1,30 @@
+议题：constexpr 从 11 到 20
+大纲：
+- 编译时计算（为何需要编译时计算，C++发展中的份量）
+- 演进历史（从11到20）
+    - C++11 引入constexpr简单函数
+    - C++14 放开constexpr约束，Variable templates
+    - C++17 if constexpr、constexpr lambda
+    - C++20 constexpr容器、constexpr new、constexpr try-catch、constexpr虚函数、consteval/constinit
+    - constexpr STL algorithms
+
+- constexpr vs 模板元（优势，可读性，可测性）
+    - BrainFuck 编译器案例（~80行 vs ~200行）
+
+- 额外能力
+    - 定义常量
+    - 检测ub
+
+- 应用
+    - Parser Combinator(DSL)
+        - 编译期解析Json
+        - 编译期构建正则表达式FSM：https://github.com/hanickadot/compile-time-regular-expressions
+    - Constexpr everything检测一些ub: https://github.com/trailofbits/constexpr-everything
+    - 元编程库
+        - boost::hana
+        - 袁英杰大师的holo，编译期ranges
+
+- 展望未来
+    - constexpr_trace/constexpr_assert
+    - for constexpr，静态反射
+- 结论

@@ -6,6 +6,15 @@
     color: #6f42c1;
 }
 
+.reveal pre strong, .reveal pre b {
+    font-weight: normal;
+    background-color: yellow;
+}
+
+.reveal pre code {
+    max-height: none;
+}
+
 .reveal {
     font-family: 'Roboto', sans-serif;
     font-size: 40px;
@@ -24,6 +33,10 @@
 
 .reveal .red {
     color: red;
+}
+
+.reveal .green {
+    color: green;
 }
 
 .reveal .blue {
