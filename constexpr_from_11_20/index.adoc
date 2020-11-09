@@ -6,7 +6,7 @@
 :revealjs_theme: serif
 :highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/github-gist.css
 :source-highlighter: highlightjs
-:highlightjs-languages: cpp,x86asm
+:highlightjs-languages: cpp,x86asm,haskell
 :revealjs_history: true
 :revealjs_pdfseparatefragments: false
 :revealjs_transition: slide
@@ -129,7 +129,7 @@ using Cell = std::integral_constant<char, c>;
 template<size_t P = 0, bool INLOOP = false, typename ...Cells>
 struct Machine {
     using type = Machine<P, INLOOP, Cells...>;
-    constexpr static size_t InLoop = INLOOP;
+    constexpr static bool InLoop = INLOOP;
 };
 ----
 
@@ -480,15 +480,316 @@ image::constexpr-all-the-things.png[80%,80%]
 
 == 深入constexpr
 * constexpr常量
+* 折叠表达式：fold expression
 * constexpr函数、lambda
 * consteval/constinit
 * if constexpr
-* fold expression
 * constexpr容器、算法
 * constexpr destructor
 * 检测Undefined Behaviour
 
+=== constexpr常量
+[source,cpp]
+----
+#define CODE R"(                                               \
+        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.   \
+        >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++. \
+    )"
+constexpr auto res = brain_fuck(CODE);
+----
+icon:angle-double-down[role="icon-center"]
+[source,cpp,subs="verbatim,quotes"]
+----
+const char* CODE = R"(
+        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.
+        >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
+    )";
+// error: constexpr variable 'res' must be initialized by a *constant expression*
+constexpr auto res = brain_fuck(CODE);
+----
+icon:angle-double-down[role="icon-center"]
+[source,cpp,subs="verbatim,quotes"]
+----
+constexpr const char* CODE = R"(
+        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.
+        >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
+    )";
+constexpr auto res = brain_fuck(CODE);
+----
+
+=== constexpr模板常量
+做常量别名
+[source,cpp]
+----
+template<class T>
+constexpr bool is_class_v = is_class<T>::value;
+----
+
+类Haskell风格：
+[source,cpp]
+----
+template<char c>
+constexpr bool is_digit = (c >= '0' && c <= '9');
+
+template<char c>
+constexpr bool is_digit_or_dot = (is_digit<c> || c == '.');
+
+static_assert(! is_digit<'x'>);
+static_assert(is_digit<'0'>);
+----
+
+[source,haskell]
+----
+isDight :: Char -> Bool
+isDight c = (c >= '0' && c <= '9')
+
+isDightOrDot :: Char -> Bool
+isDightOrDot c = (c >= '0' && c <= '9' || c == '.')
+
+*Main> isDight 'x'
+False
+*Main> isDight '0'
+True
+----
+
+=== 折叠表达式 fold expression
+[source,cpp,subs="verbatim,quotes"]
+----
+template<char c, char... cs>
+constexpr bool is_sign_valid = ((c == '+' || c == '-') && sizeof...(cs) > 0)
+                                || is_digit_or_dot<c>;
+
+template<char... cs>
+constexpr size_t number_of_dots = ((cs == '.' ? 1 : 0) + *...* + 0);
+
+template<char c, char... cs>
+constexpr bool is_integer = is_sign_valid<c, cs...> &&
+                            (is_digit<cs> && *...*);
+
+template<char... cs>
+constexpr bool is_double = is_sign_valid<cs...> &&
+                           ( (is_digit_or_dot<cs>) && *...*) &&
+                           number_of_dots<cs...> == 1;
+
+template<char... cs>
+constexpr bool is_number_valid = (is_integer<cs...> || is_double<cs...>);
+
+static_assert(is_number_valid<'1', '2', '3', '.', '4'>);
+static_assert(! is_number_valid<'a', 'b', 'c', 'd'>);
+----
+
+=== constexpr 函数 & lambda
+C++17起，lambda默认为constexpr
+[source,cpp]
+----
+// constexpr int fibonacci(int n);
+auto fibonacci = [](int n) {
+    int a = 0, b = 1;
+    for (int c = 0; c < n; ++ c) {
+        int t = a + b;
+        a = b;
+        b = t;
+    }
+    return a;
+};
+
+constexpr auto v = fibonacci(10);
+static_assert(v == 55);
+----
+
+=== consteval/constinit
+consteval::
+specifies that a function is an immediate function, that is, every call to the function must produce a *compile-time* constant.
+constinit::
+asserts that a variable has *static initialization*, i.e. zero initialization and constant initialization, otherwise the program is ill-formed.
+
+=== if constexpr
+icon:question[role="orange"]
+如何求结构体字段个数
+
+[source,cpp]
+----
+struct AnyType {
+    template <typename T>
+    operator T();
+};
+
+template <typename T>
+consteval size_t CountMember(auto&&... Args) {
+    if constexpr (requires { T{ Args... }; }) {    // <1>
+        return CountMember<T>(Args..., AnyType{}); // <2>
+    } else {
+        return sizeof...(Args) - 1;                // <3>
+    }
+}
+
+struct Test { int a; int b; int c; int d; };
+static_assert(CountMember<Test>() == 4);
+----
+
+<1> 判断当前参数包是否能够成功 *聚合初始化* 对象T，C++20 concept特性
+<2> 若 *聚合初始化* 成功，不断添加参数对T进行进一步 *聚合初始化*
+<3> 若 *聚合初始化* 失败，字段个数为参数个数-1
+
+=== constexpr容器、算法
+image::constexpr_vector_construct.png[]
+
+image::constexpr_vector_destructor.png[80%, 50%]
+
+image::constexpr_sort.png[]
+
+=== constexpr destructor
+icon:question[role="orange"]
+如何优化 SFINAE解法
+[source,cpp]
+----
+struct OptionalTrivially {};
+
+template <typename T, typename Contained>
+struct OptionalNonTrivially {
+    ~OptionalNonTrivially() {
+        if (static_cast<T*>(this)->initilzed_) {
+            static_cast<T*>(this)->storage_.data.~Contained();
+        }
+    }
+};
+
+template <typename Contained>
+struct Optional: std::conditional_t<std::is_trivially_destructible_v<Contained>,
+                                    OptionalTrivially,
+                                    OptionalNonTrivially<Optional<Contained>, Contained>> {
+    constexpr Optional& operator=(Contained&& data) {
+        storage_.data = std::move(data);
+        initilzed_ = true;
+        return *this;
+    }
+
+    Storage<Contained> storage_;
+    bool initilzed_{};
+};
+----
+
+=== constexpr destructor
+icon:lightbulb-o[] if constexpr
+[source,cpp]
+----
+template <typename Contained>
+struct Optional {
+    constexpr Optional& operator=(Contained&& data) {
+        storage_.data = std::move(data);
+        initilzed_ = true;
+        return *this;
+    }
+
+    constexpr ~Optional() {
+        if constexpr(! std::is_trivially_destructible_v<Contained>) {
+            if (initilzed_) {
+                this->storage_.data.~Contained();
+                initilzed_ = false;
+            }
+        }
+    }
+
+    Storage<Contained> storage_;
+    bool initilzed_{};
+};
+----
+
+=== constexpr destructor
+icon:lightbulb-o[] constexpr destructor
+[source,cpp]
+----
+template <typename Contained>
+struct Optional {
+    constexpr Optional& operator=(Contained&& data) {
+        storage_.data = std::move(data);
+        initilzed_ = true;
+        return *this;
+    }
+
+    constexpr ~Optional() requires (! std::is_trivially_destructible_v<Contained>) {
+        if (initilzed_) {
+            this->storage_.data.~Contained();
+        }
+    }
+    constexpr ~Optional() = default;
+
+    Storage<Contained> storage_;
+    bool initilzed_{};
+};
+----
+
+=== 检测Undefined Behaviour
+[source,cpp]
+----
+const double x1=100/0;                               // <1>
+const int x2 = std::numeric_limits<int>::min() / -1; // <2>
+
+constexpr double y1=100/0;                               // <3>
+constexpr int y2 = std::numeric_limits<int>::min() / -1; // <4>
+----
+
+<1> warning: division by zero
+<2> no warning in clang
+<3> error: division by zero is not a constant expression
+<4> error: overflow in constant expression
+
+[source,cpp]
+----
+constexpr int bar() {
+    int* p = nullptr;
+    return *p;
+}
+
+constexpr auto foo = bar(); // <1>
+----
+<1> error: dereferencing a null pointer
+
+=== 检测Undefined Behaviour
+[source,cpp]
+----
+constexpr int foo(const int *p) {
+    return *(p + 12); <1>
+}
+
+constexpr void bar() {
+    constexpr int arr[10]{};
+    constexpr int x = foo(arr);
+}
+----
+<1> error: array subscript value '12' is outside the bounds of array 'arr' of type 'const int [10]'
+
+[source,cpp]
+----
+constexpr int& foo(){
+    int x=23;
+    return x;
+}
+
+constexpr int bar() {
+    constexpr int x = foo(); <1>
+    return x;
+}
+----
+<1> error: constexpr variable 'x' must be initialized by a constant expression. note: read of variable whose lifetime has ended
+
+=== 检测Undefined Behaviour
+[source,cpp]
+----
+constexpr int foo(int x) {
+   if(x) return 1;
+}
+
+void bar(){
+    constexpr int x = foo(0); <1>
+}
+----
+<1> error: 'constexpr' call flows off the end of the function
+
 
 == Reference
 * http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html[Introduction to C++ Metaprogramming]
+* https://www.youtube.com/watch?v=A3_xrqr5Kdw[C++ Weekly - Ep 231 - Multiple Destructors in C++20?! How and Why]
+* https://github.com/trailofbits/constexpr-everything[https://github.com/trailofbits/constexpr-everything]
+* https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html[Exploring Undefined Behavior Using Constexpr]
 
