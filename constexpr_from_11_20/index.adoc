@@ -34,12 +34,13 @@ include::../common/self_introduction.adoc[]
 
 == 编译时计算（元编程）
 * 零成本抽象
-* 编译时多态 (eg. Policy class, Tag Dispatcher, CRTP)
+* 编译时多态 (eg. Policy Class, Tag Dispatcher, CRTP)
 * 值计算
+* 类型计算(Type Traits)
 * 类型安全 (eg. 单位运算, Phantom Types)
-* Embedded Domain specific languages
+* 内部领域特定语言(EDSL)
 
-=== 编译时计算（元编程）& 流派
+=== 编译时计算（元编程）& 风格
 * 模板元编程
 * Constexpr all the things!
 * 两者结合
@@ -54,8 +55,8 @@ include::../common/self_introduction.adoc[]
 * C++98 模板实例化
 * C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits
 * C++14 decltype(auto)、integer_sequence
-* C++17 CTAD、auto非类型参数、void_t
-* C++20 Concept、放宽非类型参数
+* C++17 类模板参数推导CTAD、auto非类型参数、void_t
+* C++20 概念Concept、放宽非类型参数
 --
 
 [.column]
@@ -64,8 +65,8 @@ constexpr
 
 * C++11 引入constexpr简单函数
 * C++14 放开constexpr约束, 模板变量
-* C++17 if constexpr、constexpr lambda、fold expression
-* C++20 constexpr容器、constexpr new、constexpr destructor、constexpr virtual、consteval/constinit、lambda模板参数
+* C++17 if constexpr、constexpr lambda、折叠表达式
+* C++20 constexpr容器、constexpr new、constexpr析构函数、constexpr虚函数、consteval/constinit、lambda模板参数
 * constexpr STL algorithms
 --
 
@@ -118,24 +119,20 @@ puts( R"(
 ----
 
 == BrainFuck编译器：模板元解法
-Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
-
 基础元数据结构
 [source,cpp]
 ----
 template<char c>
 using Cell = std::integral_constant<char, c>;
 
-template<size_t P = 0, bool INLOOP = false, typename ...Cells>
+template<size_t P = 0, bool INLOOP = false, typename ...CELLs>
 struct Machine {
-    using type = Machine<P, INLOOP, Cells...>;
+    using type = Machine<P, INLOOP, CELLs...>;
     constexpr static bool InLoop = INLOOP;
 };
 ----
 
 === BrainFuck编译器：模板元解法
-Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
-
 相关操作
 [source,cpp,subs="verbatim,quotes"]
 ----
@@ -146,26 +143,24 @@ namespace MachineTrait {
 
     template<typename MACHINE> struct Inc;
     template<typename MACHINE> using Inc_t = typename Inc<MACHINE>::type;
-    template<size_t PC, bool INLOOP, typename C, typename... Cells>
-    struct Inc<Machine<PC, INLOOP, C, Cells...>>:
-        Concat_t<Machine<PC, INLOOP, C>, Inc_t<Machine<PC - 1, INLOOP, Cells...>>> {};
-    template<bool INLOOP, typename C, typename... Cells>
-    struct Inc<Machine<0, INLOOP, C, Cells...>>:
-        Machine<0, INLOOP, Cell< *C::value + 1* >, Cells...> {};
+    template<size_t PC, bool INLOOP, typename C, typename... CELLs>
+    struct Inc<Machine<PC, INLOOP, C, CELLs...>>:
+        Concat_t<Machine<PC, INLOOP, C>, Inc_t<Machine<PC - 1, INLOOP, CELLs...>>> {};
+    template<bool INLOOP, typename C, typename... CELLs>
+    struct Inc<Machine<0, INLOOP, C, CELLs...>>:
+        Machine<0, INLOOP, Cell< *C::value + 1* >, CELLs...> {};
 
     template<typename MACHINE>
     struct Left;
     template<typename MACHINE>
     using Left_t = typename Left<MACHINE>::type;
-    template<size_t PC, bool INLOOP, typename... Cells>
-    struct Left<Machine<PC, INLOOP, Cells...>>:
-        Machine< *PC-1*, INLOOP, Cells...> {};
+    template<size_t PC, bool INLOOP, typename... CELLs>
+    struct Left<Machine<PC, INLOOP, CELLs...>>:
+        Machine< *PC-1*, INLOOP, CELLs...> {};
 };
 ----
 
 === BrainFuck编译器：模板元解法
-Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
-
 解析BrainFuck代码：基本操作
 [source,cpp,subs="verbatim,quotes"]
 ----
@@ -192,8 +187,6 @@ struct BrainFuck<MACHINE, false, *'>'*, cs...>:
 ----
 
 === BrainFuck编译器：模板元解法
-Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
-
 解析BrainFuck代码：循环 & 分支
 [source,cpp,subs="verbatim,quotes"]
 ----
@@ -218,14 +211,12 @@ struct BrainFuck<MACHINE, false, *'['*, cs...> {
 ----
 
 === BrainFuck编译器：模板元解法
-Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
-
 保存结果
 [source,cpp]
 ----
-template<size_t PC, bool INLOOP, typename ...Cells>
-inline const auto ToStr(Machine<PC, INLOOP, Cells...>) {
-    constexpr const static char str[] = { Cells::value ...  };
+template<size_t PC, bool INLOOP, typename ...CELLs>
+inline const auto ToStr(Machine<PC, INLOOP, CELLs...>) {
+    constexpr const static char str[] = { CELLs::value ...  };
     return str;
 }
 
@@ -239,7 +230,7 @@ constexpr auto operator ""_brain_fuck() {
 ----
 
 === BrainFuck编译器：模板元解法
-Full code: https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
+完整代码： https://godbolt.org/z/GTKxhc[https://godbolt.org/z/GTKxhc]
 
 生成代码
 [source,x86asm,subs="verbatim,quotes"]
@@ -259,8 +250,6 @@ MachineTrait::ToStr<...>(Machine<...>)::str:
 ----
 
 == BrainFuck编译器：constexpr解法
-Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
-
 基础数据结构
 [source,cpp]
 ----
@@ -277,9 +266,7 @@ private:
 ----
 
 === BrainFuck编译器：constexpr解法
-Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
-
-解析器
+递归下降解析器
 [source,cpp]
 ----
 template<typename STREAM>
@@ -308,8 +295,6 @@ constexpr auto parse(const char* input, bool skip, char* cells,
 ----
 
 === BrainFuck编译器：constexpr解法
-Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
-
 整合一起：
 [source,cpp]
 ----
@@ -329,7 +314,7 @@ constexpr auto brain_fuck(const char* input) {
 ----
 
 === BrainFuck编译器：constexpr解法
-Full code: https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
+完整代码： https://godbolt.org/z/EYn7PG[https://godbolt.org/z/EYn7PG]
 
 编译、运行时使用：
 [source,cpp]
@@ -401,27 +386,12 @@ image::brain_fuck_perf.png[]
 
 * Looks both *scary* and *exciting* at the same time. :P
 * After reading this code I gotta *remove C++* from the programming languages I know list.  Sweet mother of god this is *incredible*! :,)
-* C++ templates is a language within a language, now you have brainf*ck in templates, so it's a language withing a language within a language. It's languageception.
 * Nice, definitely *scary* stuff though.
 * Where does one learn to use templates like that? I have no idea what I'm looking at
-* Lots of mind altering drugs
 * From my experience, templates like this are *hard to casually read* even if you are the one who wrote them. It makes perfect sense when you are *creating the monstrosity* though.
 * Actually, for what it is, it's incredibly *readable*.
 * Awesome, Now make a c++ compiler with brainfuck :p
-* I've been planning on trying something similar with Ruby, to see if the C++ compiler can generate a minimal program.
 
-=== constexpr vs 模板元编程
-模板元 https://zhuanlan.zhihu.com/p/273805962[https://zhuanlan.zhihu.com/p/273805962], https://www.zhihu.com/question/334884938/answer/1557544809[https://www.zhihu.com/question/334884938]
-
-* 年轻人，没见识过面向脑容量编程吧
-* 高级语言比汇编还难读
-* 你是魔鬼吗
-* 好聪明的编译器
-* 机器进化成人了，简称人肉编译器...
-* 不至于不至于
-* 据说写BrainFuck会感觉brain被fuck了…
-
-=== constexpr vs 模板元编程
 constexpr http://redd.it/jp7k0u[http://redd.it/jp7k0u]
 
 * Amazing, very neat, show the *power* of constexpr functions, way more *readable* than template.
@@ -458,7 +428,7 @@ constexpr http://redd.it/jp7k0u[http://redd.it/jp7k0u]
 * 运行时效率
 * 体系成熟，拥有大量的库 +
 参考资料多
-* TypeList可以任意扩容（可变模板参数）
+* 可变参数模板类可以任意扩容
 * 可读性差，维护性差
 * 编译错误信息难懂；编译速度慢；跨平台（编译器）弱
 --
@@ -478,43 +448,50 @@ constexpr优缺点
 == Constexpr all the things!
 image::constexpr-all-the-things.png[80%,80%]
 
+== constexpr历程
+* C++11 引入constexpr简单函数
+** 只允许一条return语句
+** 递归解决问题！简单的数学函数、字符串hash函数
+* C++14 放开constexpr约束, 模板变量
+** 泛化constexpr
+** 一些库出现
+* C++17 if constexpr、constexpr lambda、折叠表达式
+** 表达力提升
+* C++20 constexpr容器、constexpr new、constexpr析构函数、constexpr虚函数、consteval/constinit、lambda模板参数
+* constexpr STL algorithms
+
 == 深入constexpr
 * constexpr常量
-* 折叠表达式：fold expression
+* 折叠表达式
 * constexpr函数、lambda
 * consteval/constinit
 * if constexpr
 * constexpr容器、算法
-* constexpr destructor
+* constexpr析构函数
 * 检测Undefined Behaviour
 
 === constexpr常量
 [source,cpp]
 ----
-#define CODE R"(                                               \
-        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.   \
-        >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++. \
-    )"
-constexpr auto res = brain_fuck(CODE);
+constexpr size_t strLen(const char* str) {
+    return (*str == '\0') ? 0 : 1 + strLen(str + 1);
+}
+
+#define STR "hello world"
+static_assert(strLen(STR) == 11);
 ----
 icon:angle-double-down[role="icon-center"]
 [source,cpp,subs="verbatim,quotes"]
 ----
-const char* CODE = R"(
-        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.
-        >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
-    )";
-// error: constexpr variable 'res' must be initialized by a *constant expression*
-constexpr auto res = brain_fuck(CODE);
+const char* str = "hello world";
+// error: static_assert expression is not an integral *constant expression*
+static_assert(strLen(str) == 11);
 ----
 icon:angle-double-down[role="icon-center"]
 [source,cpp,subs="verbatim,quotes"]
 ----
-constexpr const char* CODE = R"(
-        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.
-        >---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
-    )";
-constexpr auto res = brain_fuck(CODE);
+constexpr const char* str = "hello world";
+static_assert(strLen(str) == 11);
 ----
 
 === constexpr模板常量
@@ -525,12 +502,11 @@ template<class T>
 constexpr bool is_class_v = is_class<T>::value;
 ----
 
-类Haskell风格：
+表达式计算
 [source,cpp]
 ----
 template<char c>
 constexpr bool is_digit = (c >= '0' && c <= '9');
-
 template<char c>
 constexpr bool is_digit_or_dot = (is_digit<c> || c == '.');
 
@@ -538,21 +514,20 @@ static_assert(! is_digit<'x'>);
 static_assert(is_digit<'0'>);
 ----
 
-[source,haskell]
+模板特化
+[source,cpp]
 ----
-isDight :: Char -> Bool
-isDight c = (c >= '0' && c <= '9')
+template<size_t N>
+constexpr size_t fibonacci = fibonacci<N - 1> + fibonacci<N - 2>;
+template<>
+constexpr size_t fibonacci<0> = 0;
+template<>
+constexpr size_t fibonacci<1> = 1;
 
-isDightOrDot :: Char -> Bool
-isDightOrDot c = (c >= '0' && c <= '9' || c == '.')
-
-*Main> isDight 'x'
-False
-*Main> isDight '0'
-True
+static_assert(fibonacci<10> == 55);
 ----
 
-=== 折叠表达式 fold expression
+=== 折叠表达式
 [source,cpp,subs="verbatim,quotes"]
 ----
 template<char c, char... cs>
@@ -638,9 +613,9 @@ image::constexpr_vector_destructor.png[80%, 50%]
 
 image::constexpr_sort.png[]
 
-=== constexpr destructor
+=== constexpr析构函数 - 析构优化
 icon:question[role="orange"]
-如何优化 SFINAE解法
+如何优化
 [source,cpp]
 ----
 struct OptionalTrivially {};
@@ -648,74 +623,72 @@ struct OptionalTrivially {};
 template <typename T, typename Contained>
 struct OptionalNonTrivially {
     ~OptionalNonTrivially() {
-        if (static_cast<T*>(this)->initilzed_) {
+        if (static_cast<T*>(this)->initialized_) {
             static_cast<T*>(this)->storage_.data.~Contained();
         }
     }
 };
 
 template <typename Contained>
-struct Optional: std::conditional_t<std::is_trivially_destructible_v<Contained>,
-                                    OptionalTrivially,
-                                    OptionalNonTrivially<Optional<Contained>, Contained>> {
+struct Optional: conditional_t<is_trivially_destructible_v<Contained>,
+                               OptionalTrivially,
+                               OptionalNonTrivially<Optional<Contained>, Contained>> {
     constexpr Optional& operator=(Contained&& data) {
         storage_.data = std::move(data);
-        initilzed_ = true;
+        initialized_ = true;
         return *this;
     }
 
     Storage<Contained> storage_;
-    bool initilzed_{};
+    bool initialized_{};
 };
 ----
 
-=== constexpr destructor
-icon:lightbulb-o[] if constexpr
+=== constexpr析构函数 - 使用if constexpr
 [source,cpp]
 ----
 template <typename Contained>
 struct Optional {
     constexpr Optional& operator=(Contained&& data) {
         storage_.data = std::move(data);
-        initilzed_ = true;
+        initialized_ = true;
         return *this;
     }
 
     constexpr ~Optional() {
-        if constexpr(! std::is_trivially_destructible_v<Contained>) {
-            if (initilzed_) {
+        if constexpr(! is_trivially_destructible_v<Contained>) {
+            if (initialized_) {
                 this->storage_.data.~Contained();
-                initilzed_ = false;
+                initialized_ = false;
             }
         }
     }
 
     Storage<Contained> storage_;
-    bool initilzed_{};
+    bool initialized_{};
 };
 ----
 
-=== constexpr destructor
-icon:lightbulb-o[] constexpr destructor
+=== constexpr析构函数 - 使用概念约束
 [source,cpp]
 ----
 template <typename Contained>
 struct Optional {
     constexpr Optional& operator=(Contained&& data) {
         storage_.data = std::move(data);
-        initilzed_ = true;
+        initialized_ = true;
         return *this;
     }
 
-    constexpr ~Optional() requires (! std::is_trivially_destructible_v<Contained>) {
-        if (initilzed_) {
+    constexpr ~Optional() requires (! is_trivially_destructible_v<Contained>) {
+        if (initialized_) {
             this->storage_.data.~Contained();
         }
     }
     constexpr ~Optional() = default;
 
     Storage<Contained> storage_;
-    bool initilzed_{};
+    bool initialized_{};
 };
 ----
 
@@ -762,7 +735,7 @@ constexpr void bar() {
 [source,cpp]
 ----
 constexpr int& foo(){
-    int x=23;
+    int x = 23;
     return x;
 }
 
@@ -786,6 +759,7 @@ void bar(){
 ----
 <1> error: 'constexpr' call flows off the end of the function
 
+辅助工具： https://github.com/trailofbits/constexpr-everything[https://github.com/trailofbits/constexpr-everything]
 
 == Reference
 * http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html[Introduction to C++ Metaprogramming]

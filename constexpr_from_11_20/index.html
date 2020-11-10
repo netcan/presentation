@@ -159,11 +159,11 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link re
 long live constexpr</p></div></div><p class="author"><small>Netcan 2020-11-10 @Shanghai</small></p></section>
 <section id="_自我介绍"><h2>自我介绍</h2><div class="slide-content"><div class="ulist"><ul><li><p>96年出生，18年毕业于合肥工业大学本科</p></li><li><p>高级工程师</p></li><li><p>知乎 <a href="https://www.zhihu.com/column/c_1289690410462785536">《魅力C++》</a> 专栏作者</p></li><li><p>兴趣：CS, OO, FP, Design, Coding, Writing</p></li><li><p>Skills: C/C++/Rust, Haskell/Scheme, Bash/Python/Javascript/PHP</p></li></ul></div></div></section>
 <section id="_议程"><h2>议程</h2><div class="slide-content"><div class="ulist"><ul><li><p>编译时计算（元编程）</p></li><li><p>演进历史</p></li><li><p>constexpr vs 模板元</p></li><li><p>深入constexpr</p></li><li><p>应用</p></li><li><p>展望未来</p></li><li><p>结论</p></li></ul></div></div></section>
-<section><section id="_编译时计算元编程"><h2>编译时计算（元编程）</h2><div class="slide-content"><div class="ulist"><ul><li><p>零成本抽象</p></li><li><p>编译时多态 (eg. Policy class, Tag Dispatcher, CRTP)</p></li><li><p>值计算</p></li><li><p>类型安全 (eg. 单位运算, Phantom Types)</p></li><li><p>Embedded Domain specific languages</p></li></ul></div></div></section><section id="_编译时计算元编程_流派"><h2>编译时计算（元编程）&amp; 流派</h2><div class="slide-content"><div class="ulist"><ul><li><p>模板元编程</p></li><li><p>Constexpr all the things!</p></li><li><p>两者结合</p></li></ul></div></div></section></section>
+<section><section id="_编译时计算元编程"><h2>编译时计算（元编程）</h2><div class="slide-content"><div class="ulist"><ul><li><p>零成本抽象</p></li><li><p>编译时多态 (eg. Policy Class, Tag Dispatcher, CRTP)</p></li><li><p>值计算</p></li><li><p>类型计算(Type Traits)</p></li><li><p>类型安全 (eg. 单位运算, Phantom Types)</p></li><li><p>内部领域特定语言(EDSL)</p></li></ul></div></div></section><section id="_编译时计算元编程_风格"><h2>编译时计算（元编程）&amp; 风格</h2><div class="slide-content"><div class="ulist"><ul><li><p>模板元编程</p></li><li><p>Constexpr all the things!</p></li><li><p>两者结合</p></li></ul></div></div></section></section>
 <section id="_演进历史" class="columns"><h2>演进历史</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>模板元编程</p></div>
-<div class="ulist"><ul><li><p>1986 C++引入模板</p></li><li><p>C++98 模板实例化</p></li><li><p>C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits</p></li><li><p>C++14 decltype(auto)、integer_sequence</p></li><li><p>C++17 CTAD、auto非类型参数、void_t</p></li><li><p>C++20 Concept、放宽非类型参数</p></li></ul></div></div></div>
+<div class="ulist"><ul><li><p>1986 C++引入模板</p></li><li><p>C++98 模板实例化</p></li><li><p>C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits</p></li><li><p>C++14 decltype(auto)、integer_sequence</p></li><li><p>C++17 类模板参数推导CTAD、auto非类型参数、void_t</p></li><li><p>C++20 概念Concept、放宽非类型参数</p></li></ul></div></div></div>
 <div class="openblock column"><div class="content"><div class="paragraph"><p>constexpr</p></div>
-<div class="ulist"><ul><li><p>C++11 引入constexpr简单函数</p></li><li><p>C++14 放开constexpr约束, 模板变量</p></li><li><p>C++17 if constexpr、constexpr lambda、fold expression</p></li><li><p>C++20 constexpr容器、constexpr new、constexpr destructor、constexpr virtual、consteval/constinit、lambda模板参数</p></li><li><p>constexpr STL algorithms</p></li></ul></div></div></div></div></section>
+<div class="ulist"><ul><li><p>C++11 引入constexpr简单函数</p></li><li><p>C++14 放开constexpr约束, 模板变量</p></li><li><p>C++17 if constexpr、constexpr lambda、折叠表达式</p></li><li><p>C++20 constexpr容器、constexpr new、constexpr析构函数、constexpr虚函数、consteval/constinit、lambda模板参数</p></li><li><p>constexpr STL algorithms</p></li></ul></div></div></div></div></section>
 <section><section id="_constexpr_vs_模板元编程" class="columns"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>BrainFuck语言</p></div>
 <div class="ulist"><ul><li><p>图灵完备</p></li><li><p>8种操作符</p></li><li><p>DSL</p></li></ul></div>
 <div class="paragraph"><p><a href="https://fatiherikli.github.io/brainfuck-visualizer/#PisrKysrKysrWzwrKysrKysrKys+LV08LiAgICAgICAgICAgICAgICAgOyBICj4+KysrKysrKysrK1s8KysrKysrKysrKz4tXTwrLiAgICAgICAgICAgIDsgZQo+PisrKysrKysrK1s8KysrKysrKysrKysrPi1dPC4gICAgICAgICAgICA7IGwKPj4rKysrKysrKytbPCsrKysrKysrKysrKz4tXTwuICAgICAgICAgICAgOyBsCj4+KysrKysrKysrK1s8KysrKysrKysrKys+LV08Ky4gICAgICAgICAgIDsgbwo+PisrKytbPCsrKysrKysrPi1dPC4gICAgICAgICAgICAgICAgICAgICA7Cj4+KysrKysrKysrKytbPCsrKysrKysrPi1dPC0uICAgICAgICAgICAgIDsgVwo+PisrKysrKysrKytbPCsrKysrKysrKysrPi1dPCsuICAgICAgICAgICA7IG8KPj4rKysrKysrKysrWzwrKysrKysrKysrKys+LV08LS0tLS0tLiAgICAgOyByCj4+KysrKysrKysrWzwrKysrKysrKysrKys+LV08LiAgICAgICAgICAgIDsgbAo+PisrKysrKysrKytbPCsrKysrKysrKys+LV08LiAgICAgICAgICAgICA7IGQKPj4rKysrKytbPCsrKysrKz4tXTwtLS0uICAgIC">brainfuck-visualizer</a></p></div></div></div><div class="openblock column"><div class="content"><table class="tableblock frame-all grid-all" style="width:100%"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><tbody><tr><td class="tableblock halign-left valign-top"><p class="tableblock">&gt;</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">++ptr;</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">&lt;</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">--ptr;</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">++*ptr;</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">--*ptr;</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">.</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">putchar(*ptr);</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">,</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">*ptr = getchar();</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">[</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">while (*ptr) {</p></td></tr><tr><td class="tableblock halign-left valign-top"><p class="tableblock">]</p></td><td class="tableblock halign-left valign-top"><p class="tableblock">}</p></td></tr></table></div></div></div></section><section id="_brainfuck_hello_world"><h2>BrainFuck: Hello world</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">puts( R"(
@@ -180,15 +180,14 @@ long live constexpr</p></div></div><p class="author"><small>Netcan 2020-11-10 @S
     &gt;&gt;++++++++++[&lt;++++++++++&gt;-]&lt;.         ; d   (10*10   = 100)
     &gt;&gt;++++++[&lt;++++++&gt;-]&lt;---.              ; !   (6*6-3   = 33)
 )"_brain_fuck );</code></pre></div></div></div></section></section>
-<section><section id="_brainfuck编译器模板元解法"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div><div class="paragraph"><p>基础元数据结构</p></div><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c&gt;
+<section><section id="_brainfuck编译器模板元解法"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>基础元数据结构</p></div><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c&gt;
 using Cell = std::integral_constant&lt;char, c&gt;;
 
-template&lt;size_t P = 0, bool INLOOP = false, typename ...Cells&gt;
+template&lt;size_t P = 0, bool INLOOP = false, typename ...CELLs&gt;
 struct Machine {
-    using type = Machine&lt;P, INLOOP, Cells...&gt;;
+    using type = Machine&lt;P, INLOOP, CELLs...&gt;;
     constexpr static bool InLoop = INLOOP;
-};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_2"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div>
-<div class="paragraph"><p>相关操作</p></div>
+};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_2"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>相关操作</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">namespace MachineTrait {
     template&lt;size_t N&gt;
     struct <strong>InitMachine</strong>: Concat_t&lt;Machine&lt;0, 0, Cell&lt;0&gt;&gt;, typename <strong>InitMachine&lt;N-1&gt;</strong>::type&gt; {};
@@ -196,22 +195,21 @@ struct Machine {
 
     template&lt;typename MACHINE&gt; struct Inc;
     template&lt;typename MACHINE&gt; using Inc_t = typename Inc&lt;MACHINE&gt;::type;
-    template&lt;size_t PC, bool INLOOP, typename C, typename... Cells&gt;
-    struct Inc&lt;Machine&lt;PC, INLOOP, C, Cells...&gt;&gt;:
-        Concat_t&lt;Machine&lt;PC, INLOOP, C&gt;, Inc_t&lt;Machine&lt;PC - 1, INLOOP, Cells...&gt;&gt;&gt; {};
-    template&lt;bool INLOOP, typename C, typename... Cells&gt;
-    struct Inc&lt;Machine&lt;0, INLOOP, C, Cells...&gt;&gt;:
-        Machine&lt;0, INLOOP, Cell&lt; <strong>C::value + 1</strong> &gt;, Cells...&gt; {};
+    template&lt;size_t PC, bool INLOOP, typename C, typename... CELLs&gt;
+    struct Inc&lt;Machine&lt;PC, INLOOP, C, CELLs...&gt;&gt;:
+        Concat_t&lt;Machine&lt;PC, INLOOP, C&gt;, Inc_t&lt;Machine&lt;PC - 1, INLOOP, CELLs...&gt;&gt;&gt; {};
+    template&lt;bool INLOOP, typename C, typename... CELLs&gt;
+    struct Inc&lt;Machine&lt;0, INLOOP, C, CELLs...&gt;&gt;:
+        Machine&lt;0, INLOOP, Cell&lt; <strong>C::value + 1</strong> &gt;, CELLs...&gt; {};
 
     template&lt;typename MACHINE&gt;
     struct Left;
     template&lt;typename MACHINE&gt;
     using Left_t = typename Left&lt;MACHINE&gt;::type;
-    template&lt;size_t PC, bool INLOOP, typename... Cells&gt;
-    struct Left&lt;Machine&lt;PC, INLOOP, Cells...&gt;&gt;:
-        Machine&lt; <strong>PC-1</strong>, INLOOP, Cells...&gt; {};
-};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_3"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div>
-<div class="paragraph"><p>解析BrainFuck代码：基本操作</p></div>
+    template&lt;size_t PC, bool INLOOP, typename... CELLs&gt;
+    struct Left&lt;Machine&lt;PC, INLOOP, CELLs...&gt;&gt;:
+        Machine&lt; <strong>PC-1</strong>, INLOOP, CELLs...&gt; {};
+};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_3"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>解析BrainFuck代码：基本操作</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename MACHINE, bool skip, char ...cs&gt;
 struct BrainFuck: MACHINE {};
 template&lt;typename MACHINE, bool skip, char ...cs&gt;
@@ -231,8 +229,7 @@ struct BrainFuck&lt;MACHINE, false, <strong>'&lt;'</strong>, cs...&gt;:
 
 template&lt;typename MACHINE, char ...cs&gt;
 struct BrainFuck&lt;MACHINE, false, <strong>'&gt;'</strong>, cs...&gt;:
-    BrainFuck_t&lt;MachineTrait::Right_t&lt;MACHINE&gt;, false, cs...&gt; {};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_4"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div>
-<div class="paragraph"><p>解析BrainFuck代码：循环 &amp; 分支</p></div>
+    BrainFuck_t&lt;MachineTrait::Right_t&lt;MACHINE&gt;, false, cs...&gt; {};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_4"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>解析BrainFuck代码：循环 &amp; 分支</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename MACHINE, char ...cs&gt;
 struct BrainFuck&lt;MACHINE, false, <strong>'['</strong>, cs...&gt; {
     using EnableLoopedMachine = MachineTrait::EnableLoop_t&lt;MACHINE&gt;;
@@ -250,11 +247,10 @@ struct BrainFuck&lt;MACHINE, false, <strong>'['</strong>, cs...&gt; {
     struct Loop&lt;IN, true&gt;: BrainFuck_t&lt;IN, false, '[', cs...&gt; {};
 
     using type = typename Loop&lt;Result&gt;::type;
-};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_5"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div>
-<div class="paragraph"><p>保存结果</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;size_t PC, bool INLOOP, typename ...Cells&gt;
-inline const auto ToStr(Machine&lt;PC, INLOOP, Cells...&gt;) {
-    constexpr const static char str[] = { Cells::value ...  };
+};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_5"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>保存结果</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;size_t PC, bool INLOOP, typename ...CELLs&gt;
+inline const auto ToStr(Machine&lt;PC, INLOOP, CELLs...&gt;) {
+    constexpr const static char str[] = { CELLs::value ...  };
     return str;
 }
 
@@ -264,7 +260,7 @@ constexpr auto operator ""_brain_fuck() {
     using Result = BrainFuck_t&lt;Machine, false, cs...&gt;;
 
     return ToStr(Result{});
-};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_6"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div>
+};</code></pre></div></div></div></section><section id="_brainfuck编译器模板元解法_6"><h2>BrainFuck编译器：模板元解法</h2><div class="slide-content"><div class="paragraph"><p>完整代码： <a href="https://godbolt.org/z/GTKxhc">https://godbolt.org/z/GTKxhc</a></p></div>
 <div class="paragraph"><p>生成代码</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="x86asm" class="language-x86asm hljs" data-noescape="true">main:
     subq    $8, %rsp
@@ -278,7 +274,7 @@ MachineTrait::ToStr&lt;...&gt;(Machine&lt;...&gt;)::str:
     .string ""
     .string ""
     .string ""</code></pre></div></div></div></section></section>
-<section><section id="_brainfuck编译器constexpr解法"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/EYn7PG">https://godbolt.org/z/EYn7PG</a></p></div><div class="paragraph"><p>基础数据结构</p></div><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;size_t N&gt;
+<section><section id="_brainfuck编译器constexpr解法"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>基础数据结构</p></div><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;size_t N&gt;
 class Stream {
 public:
     constexpr void push(char c) { data_[idx_++] = c; }
@@ -287,8 +283,7 @@ public:
 private:
     size_t idx_{};
     char data_[N]{};
-};</code></pre></div></div></div></section><section id="_brainfuck编译器constexpr解法_2"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/EYn7PG">https://godbolt.org/z/EYn7PG</a></p></div>
-<div class="paragraph"><p>解析器</p></div>
+};</code></pre></div></div></div></section><section id="_brainfuck编译器constexpr解法_2"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>递归下降解析器</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;typename STREAM&gt;
 constexpr auto parse(const char* input, bool skip, char* cells,
         size_t&amp; pc, STREAM&amp;&amp; output) -&gt; size_t {
@@ -311,8 +306,7 @@ constexpr auto parse(const char* input, bool skip, char* cells,
         ++c;
     }
     return c - input;
-}</code></pre></div></div></div></section><section id="_brainfuck编译器constexpr解法_3"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/EYn7PG">https://godbolt.org/z/EYn7PG</a></p></div>
-<div class="paragraph"><p>整合一起：</p></div>
+}</code></pre></div></div></div></section><section id="_brainfuck编译器constexpr解法_3"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>整合一起：</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr size_t CELL_SIZE = 16;
 template&lt;typename STREAM&gt;
 constexpr auto parse(const char* input, STREAM&amp;&amp; output) -&gt; STREAM&amp;&amp; {
@@ -325,7 +319,7 @@ constexpr auto parse(const char* input, STREAM&amp;&amp; output) -&gt; STREAM&am
 template&lt;size_t OUTPUT_SIZE = 15&gt;
 constexpr auto brain_fuck(const char* input) {
     return parse(input, Stream&lt;OUTPUT_SIZE&gt;{});
-}</code></pre></div></div></div></section><section id="_brainfuck编译器constexpr解法_4"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>Full code: <a href="https://godbolt.org/z/EYn7PG">https://godbolt.org/z/EYn7PG</a></p></div>
+}</code></pre></div></div></div></section><section id="_brainfuck编译器constexpr解法_4"><h2>BrainFuck编译器：constexpr解法</h2><div class="slide-content"><div class="paragraph"><p>完整代码： <a href="https://godbolt.org/z/EYn7PG">https://godbolt.org/z/EYn7PG</a></p></div>
 <div class="paragraph"><p>编译、运行时使用：</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// compile time
 constexpr auto res = brain_fuck(R"(
@@ -361,57 +355,51 @@ constexpr auto res = BRAIN_FUCK(R"(
 )");</code></pre></div></div></div></section></section>
 <section><section id="_constexpr_vs_模板元编程_2"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 编译时间</p></div><div class="imageblock" style=""><img src="brain_fuck_perf.png" alt="brain fuck perf"></div><div class="paragraph"><p>0.13s vs 4.088s ! 30x speed up <span class="icon red"><i class="fa fa-angle-double-up"></i></span></p></div></div></section><section id="_constexpr_vs_模板元编程_3"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p>模板元 <a href="http://redd.it/jnz5p1">http://redd.it/jnz5p1</a></p></div>
-<div class="ulist"><ul><li><p>Looks both <strong>scary</strong> and <strong>exciting</strong> at the same time. :P</p></li><li><p>After reading this code I gotta <strong>remove C++</strong> from the programming languages I know list.  Sweet mother of god this is <strong>incredible</strong>! :,)</p></li><li><p>C++ templates is a language within a language, now you have brainf*ck in templates, so it&#8217;s a language withing a language within a language. It&#8217;s languageception.</p></li><li><p>Nice, definitely <strong>scary</strong> stuff though.</p></li><li><p>Where does one learn to use templates like that? I have no idea what I&#8217;m looking at</p></li><li><p>Lots of mind altering drugs</p></li><li><p>From my experience, templates like this are <strong>hard to casually read</strong> even if you are the one who wrote them. It makes perfect sense when you are <strong>creating the monstrosity</strong> though.</p></li><li><p>Actually, for what it is, it&#8217;s incredibly <strong>readable</strong>.</p></li><li><p>Awesome, Now make a c++ compiler with brainfuck :p</p></li><li><p>I&#8217;ve been planning on trying something similar with Ruby, to see if the C++ compiler can generate a minimal program.</p></li></ul></div></div></section><section id="_constexpr_vs_模板元编程_4"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p>模板元 <a href="https://zhuanlan.zhihu.com/p/273805962">https://zhuanlan.zhihu.com/p/273805962</a>, <a href="https://www.zhihu.com/question/334884938/answer/1557544809">https://www.zhihu.com/question/334884938</a></p></div>
-<div class="ulist"><ul><li><p>年轻人，没见识过面向脑容量编程吧</p></li><li><p>高级语言比汇编还难读</p></li><li><p>你是魔鬼吗</p></li><li><p>好聪明的编译器</p></li><li><p>机器进化成人了，简称人肉编译器&#8230;&#8203;</p></li><li><p>不至于不至于</p></li><li><p>据说写BrainFuck会感觉brain被fuck了…</p></li></ul></div></div></section><section id="_constexpr_vs_模板元编程_5"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p>constexpr <a href="http://redd.it/jp7k0u">http://redd.it/jp7k0u</a></p></div>
-<div class="ulist"><ul><li><p>Amazing, very neat, show the <strong>power</strong> of constexpr functions, way more <strong>readable</strong> than template.</p></li><li><p>Wow. Your constexpr code is vastly more <strong>readable</strong> than the template metaprogramming one.</p></li></ul></div></div></section><section id="_constexpr_vs_模板元编程_6" class="columns"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>简单设计：模板元</p></div>
+<div class="ulist"><ul><li><p>Looks both <strong>scary</strong> and <strong>exciting</strong> at the same time. :P</p></li><li><p>After reading this code I gotta <strong>remove C++</strong> from the programming languages I know list.  Sweet mother of god this is <strong>incredible</strong>! :,)</p></li><li><p>Nice, definitely <strong>scary</strong> stuff though.</p></li><li><p>Where does one learn to use templates like that? I have no idea what I&#8217;m looking at</p></li><li><p>From my experience, templates like this are <strong>hard to casually read</strong> even if you are the one who wrote them. It makes perfect sense when you are <strong>creating the monstrosity</strong> though.</p></li><li><p>Actually, for what it is, it&#8217;s incredibly <strong>readable</strong>.</p></li><li><p>Awesome, Now make a c++ compiler with brainfuck :p</p></li></ul></div>
+<div class="paragraph"><p>constexpr <a href="http://redd.it/jp7k0u">http://redd.it/jp7k0u</a></p></div>
+<div class="ulist"><ul><li><p>Amazing, very neat, show the <strong>power</strong> of constexpr functions, way more <strong>readable</strong> than template.</p></li><li><p>Wow. Your constexpr code is vastly more <strong>readable</strong> than the template metaprogramming one.</p></li></ul></div></div></section><section id="_constexpr_vs_模板元编程_4" class="columns"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>简单设计：模板元</p></div>
 <div class="ulist"><ul><li><p>通过所有测试(static_assert) <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>没有重复，易于重用 <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>表达意图，易于理解（~200 lines） <span class="icon red"><i class="fa fa-times"></i></span></p></li><li><p>没有冗余，避免过度设计 <span class="icon orange"><i class="fa fa-ellipsis-h"></i></span></p></li></ul></div></div></div>
 <div class="openblock column"><div class="content"><div class="paragraph"><p>简单设计：constexpr</p></div>
-<div class="ulist"><ul><li><p>通过所有测试(static_assert) <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>没有重复，易于重用 <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>表达意图，易于理解（~80 lines） <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>没有冗余，避免过度设计 <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li></ul></div></div></div></div></section><section id="_constexpr_vs_模板元编程_7" class="columns"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>模板元优缺点</p></div>
+<div class="ulist"><ul><li><p>通过所有测试(static_assert) <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>没有重复，易于重用 <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>表达意图，易于理解（~80 lines） <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>没有冗余，避免过度设计 <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li></ul></div></div></div></div></section><section id="_constexpr_vs_模板元编程_5" class="columns"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>模板元优缺点</p></div>
 <div class="ulist"><ul><li><p>运行时效率</p></li><li><p>体系成熟，拥有大量的库<br>
-参考资料多</p></li><li><p>TypeList可以任意扩容（可变模板参数）</p></li><li><p>可读性差，维护性差</p></li><li><p>编译错误信息难懂；编译速度慢；跨平台（编译器）弱</p></li></ul></div></div></div>
+参考资料多</p></li><li><p>可变参数模板类可以任意扩容</p></li><li><p>可读性差，维护性差</p></li><li><p>编译错误信息难懂；编译速度慢；跨平台（编译器）弱</p></li></ul></div></div></div>
 <div class="openblock column"><div class="content"><div class="paragraph"><p>constexpr优缺点</p></div>
 <div class="ulist"><ul><li><p>运行时效率</p></li><li><p>新兴势力，生态待完善<br>
 参考资料少，挖掘空间大</p></li><li><p>C++20之前需要提前计算容器大小</p></li><li><p>可读性强，维护性强，更少的魔法</p></li><li><p>编译错误信息易懂；编译速度快；跨平台（编译器）强</p></li></ul></div></div></div></div></section></section>
 <section id="_constexpr_all_the_things"><h2>Constexpr all the things!</h2><div class="slide-content"><div class="imageblock" style=""><img src="constexpr-all-the-things.png" alt="80%" width="80%"></div></div></section>
-<section><section id="_深入constexpr"><h2>深入constexpr</h2><div class="slide-content"><div class="ulist"><ul><li><p>constexpr常量</p></li><li><p>折叠表达式：fold expression</p></li><li><p>constexpr函数、lambda</p></li><li><p>consteval/constinit</p></li><li><p>if constexpr</p></li><li><p>constexpr容器、算法</p></li><li><p>constexpr destructor</p></li><li><p>检测Undefined Behaviour</p></li></ul></div></div></section><section id="_constexpr常量"><h2>constexpr常量</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">#define CODE R"(                                               \
-        ++++++++[&gt;++++[&gt;++&gt;+++&gt;+++&gt;+&lt;&lt;&lt;&lt;-]&gt;+&gt;+&gt;-&gt;&gt;+[&lt;]&lt;-]&gt;&gt;.   \
-        &gt;---.+++++++..+++.&gt;&gt;.&lt;-.&lt;.+++.------.--------.&gt;&gt;+.&gt;++. \
-    )"
-constexpr auto res = brain_fuck(CODE);</code></pre></div></div>
+<section id="_constexpr历程"><h2>constexpr历程</h2><div class="slide-content"><div class="ulist"><ul><li><p>C++11 引入constexpr简单函数</p><div class="ulist"><ul><li><p>只允许一条return语句</p></li><li><p>递归解决问题！简单的数学函数、字符串hash函数</p></li></ul></div></li><li><p>C++14 放开constexpr约束, 模板变量</p><div class="ulist"><ul><li><p>泛化constexpr</p></li><li><p>一些库出现</p></li></ul></div></li><li><p>C++17 if constexpr、constexpr lambda、折叠表达式</p><div class="ulist"><ul><li><p>表达力提升</p></li></ul></div></li><li><p>C++20 constexpr容器、constexpr new、constexpr析构函数、constexpr虚函数、consteval/constinit、lambda模板参数</p></li><li><p>constexpr STL algorithms</p></li></ul></div></div></section>
+<section><section id="_深入constexpr"><h2>深入constexpr</h2><div class="slide-content"><div class="ulist"><ul><li><p>constexpr常量</p></li><li><p>折叠表达式</p></li><li><p>constexpr函数、lambda</p></li><li><p>consteval/constinit</p></li><li><p>if constexpr</p></li><li><p>constexpr容器、算法</p></li><li><p>constexpr析构函数</p></li><li><p>检测Undefined Behaviour</p></li></ul></div></div></section><section id="_constexpr常量"><h2>constexpr常量</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr size_t strLen(const char* str) {
+    return (*str == '\0') ? 0 : 1 + strLen(str + 1);
+}
+
+#define STR "hello world"
+static_assert(strLen(STR) == 11);</code></pre></div></div>
 <div class="paragraph"><p><span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span></p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">const char* CODE = R"(
-        ++++++++[&gt;++++[&gt;++&gt;+++&gt;+++&gt;+&lt;&lt;&lt;&lt;-]&gt;+&gt;+&gt;-&gt;&gt;+[&lt;]&lt;-]&gt;&gt;.
-        &gt;---.+++++++..+++.&gt;&gt;.&lt;-.&lt;.+++.------.--------.&gt;&gt;+.&gt;++.
-    )";
-// error: constexpr variable 'res' must be initialized by a <strong>constant expression</strong>
-constexpr auto res = brain_fuck(CODE);</code></pre></div></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">const char* str = "hello world";
+// error: static_assert expression is not an integral <strong>constant expression</strong>
+static_assert(strLen(str) == 11);</code></pre></div></div>
 <div class="paragraph"><p><span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span></p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr const char* CODE = R"(
-        ++++++++[&gt;++++[&gt;++&gt;+++&gt;+++&gt;+&lt;&lt;&lt;&lt;-]&gt;+&gt;+&gt;-&gt;&gt;+[&lt;]&lt;-]&gt;&gt;.
-        &gt;---.+++++++..+++.&gt;&gt;.&lt;-.&lt;.+++.------.--------.&gt;&gt;+.&gt;++.
-    )";
-constexpr auto res = brain_fuck(CODE);</code></pre></div></div></div></section><section id="_constexpr模板常量"><h2>constexpr模板常量</h2><div class="slide-content"><div class="paragraph"><p>做常量别名</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr const char* str = "hello world";
+static_assert(strLen(str) == 11);</code></pre></div></div></div></section><section id="_constexpr模板常量"><h2>constexpr模板常量</h2><div class="slide-content"><div class="paragraph"><p>做常量别名</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;class T&gt;
 constexpr bool is_class_v = is_class&lt;T&gt;::value;</code></pre></div></div>
-<div class="paragraph"><p>类Haskell风格：</p></div>
+<div class="paragraph"><p>表达式计算</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c&gt;
 constexpr bool is_digit = (c &gt;= '0' &amp;&amp; c &lt;= '9');
-
 template&lt;char c&gt;
 constexpr bool is_digit_or_dot = (is_digit&lt;c&gt; || c == '.');
 
 static_assert(! is_digit&lt;'x'&gt;);
 static_assert(is_digit&lt;'0'&gt;);</code></pre></div></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="haskell" class="language-haskell hljs" data-noescape="true">isDight :: Char -&gt; Bool
-isDight c = (c &gt;= '0' &amp;&amp; c &lt;= '9')
+<div class="paragraph"><p>模板特化</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;size_t N&gt;
+constexpr size_t fibonacci = fibonacci&lt;N - 1&gt; + fibonacci&lt;N - 2&gt;;
+template&lt;&gt;
+constexpr size_t fibonacci&lt;0&gt; = 0;
+template&lt;&gt;
+constexpr size_t fibonacci&lt;1&gt; = 1;
 
-isDightOrDot :: Char -&gt; Bool
-isDightOrDot c = (c &gt;= '0' &amp;&amp; c &lt;= '9' || c == '.')
-
-*Main&gt; isDight 'x'
-False
-*Main&gt; isDight '0'
-True</code></pre></div></div></div></section><section id="_折叠表达式_fold_expression"><h2>折叠表达式 fold expression</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c, char... cs&gt;
+static_assert(fibonacci&lt;10&gt; == 55);</code></pre></div></div></div></section><section id="_折叠表达式"><h2>折叠表达式</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c, char... cs&gt;
 constexpr bool is_sign_valid = ((c == '+' || c == '-') &amp;&amp; sizeof...(cs) &gt; 0)
                                 || is_digit_or_dot&lt;c&gt;;
 
@@ -464,69 +452,67 @@ struct Test { int a; int b; int c; int d; };
 static_assert(CountMember&lt;Test&gt;() == 4);</code></pre></div></div>
 <div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>判断当前参数包是否能够成功 <strong>聚合初始化</strong> 对象T，C++20 concept特性</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>若 <strong>聚合初始化</strong> 成功，不断添加参数对T进行进一步 <strong>聚合初始化</strong></td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>若 <strong>聚合初始化</strong> 失败，字段个数为参数个数-1</td></tr></table></div></div></section><section id="_constexpr容器算法"><h2>constexpr容器、算法</h2><div class="slide-content"><div class="imageblock" style=""><img src="constexpr_vector_construct.png" alt="constexpr vector construct"></div>
 <div class="imageblock" style=""><img src="constexpr_vector_destructor.png" alt="80%" width="50%"></div>
-<div class="imageblock" style=""><img src="constexpr_sort.png" alt="constexpr sort"></div></div></section><section id="_constexpr_destructor"><h2>constexpr destructor</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
-如何优化 SFINAE解法</p></div>
+<div class="imageblock" style=""><img src="constexpr_sort.png" alt="constexpr sort"></div></div></section><section id="_constexpr析构函数_析构优化"><h2>constexpr析构函数 - 析构优化</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如何优化</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">struct OptionalTrivially {};
 
 template &lt;typename T, typename Contained&gt;
 struct OptionalNonTrivially {
     ~OptionalNonTrivially() {
-        if (static_cast&lt;T*&gt;(this)-&gt;initilzed_) {
+        if (static_cast&lt;T*&gt;(this)-&gt;initialized_) {
             static_cast&lt;T*&gt;(this)-&gt;storage_.data.~Contained();
         }
     }
 };
 
 template &lt;typename Contained&gt;
-struct Optional: std::conditional_t&lt;std::is_trivially_destructible_v&lt;Contained&gt;,
-                                    OptionalTrivially,
-                                    OptionalNonTrivially&lt;Optional&lt;Contained&gt;, Contained&gt;&gt; {
+struct Optional: conditional_t&lt;is_trivially_destructible_v&lt;Contained&gt;,
+                               OptionalTrivially,
+                               OptionalNonTrivially&lt;Optional&lt;Contained&gt;, Contained&gt;&gt; {
     constexpr Optional&amp; operator=(Contained&amp;&amp; data) {
         storage_.data = std::move(data);
-        initilzed_ = true;
+        initialized_ = true;
         return *this;
     }
 
     Storage&lt;Contained&gt; storage_;
-    bool initilzed_{};
-};</code></pre></div></div></div></section><section id="_constexpr_destructor_2"><h2>constexpr destructor</h2><div class="slide-content"><div class="paragraph"><p><span class="icon"><i class="fa fa-lightbulb-o"></i></span> if constexpr</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename Contained&gt;
+    bool initialized_{};
+};</code></pre></div></div></div></section><section id="_constexpr析构函数_使用if_constexpr"><h2>constexpr析构函数 - 使用if constexpr</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename Contained&gt;
 struct Optional {
     constexpr Optional&amp; operator=(Contained&amp;&amp; data) {
         storage_.data = std::move(data);
-        initilzed_ = true;
+        initialized_ = true;
         return *this;
     }
 
     constexpr ~Optional() {
-        if constexpr(! std::is_trivially_destructible_v&lt;Contained&gt;) {
-            if (initilzed_) {
+        if constexpr(! is_trivially_destructible_v&lt;Contained&gt;) {
+            if (initialized_) {
                 this-&gt;storage_.data.~Contained();
-                initilzed_ = false;
+                initialized_ = false;
             }
         }
     }
 
     Storage&lt;Contained&gt; storage_;
-    bool initilzed_{};
-};</code></pre></div></div></div></section><section id="_constexpr_destructor_3"><h2>constexpr destructor</h2><div class="slide-content"><div class="paragraph"><p><span class="icon"><i class="fa fa-lightbulb-o"></i></span> constexpr destructor</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename Contained&gt;
+    bool initialized_{};
+};</code></pre></div></div></div></section><section id="_constexpr析构函数_使用概念约束"><h2>constexpr析构函数 - 使用概念约束</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename Contained&gt;
 struct Optional {
     constexpr Optional&amp; operator=(Contained&amp;&amp; data) {
         storage_.data = std::move(data);
-        initilzed_ = true;
+        initialized_ = true;
         return *this;
     }
 
-    constexpr ~Optional() requires (! std::is_trivially_destructible_v&lt;Contained&gt;) {
-        if (initilzed_) {
+    constexpr ~Optional() requires (! is_trivially_destructible_v&lt;Contained&gt;) {
+        if (initialized_) {
             this-&gt;storage_.data.~Contained();
         }
     }
     constexpr ~Optional() = default;
 
     Storage&lt;Contained&gt; storage_;
-    bool initilzed_{};
+    bool initialized_{};
 };</code></pre></div></div></div></section><section id="_检测undefined_behaviour"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">const double x1=100/0;                               <i class="conum" data-value="1"></i><b>(1)</b>
 const int x2 = std::numeric_limits&lt;int&gt;::min() / -1; <i class="conum" data-value="2"></i><b>(2)</b>
 
@@ -549,7 +535,7 @@ constexpr void bar() {
 }</code></pre></div></div>
 <div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: array subscript value '12' is outside the bounds of array 'arr' of type 'const int [10]'</td></tr></table></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int&amp; foo(){
-    int x=23;
+    int x = 23;
     return x;
 }
 
@@ -564,7 +550,8 @@ constexpr int bar() {
 void bar(){
     constexpr int x = foo(0); <i class="conum" data-value="1"></i><b>(1)</b>
 }</code></pre></div></div>
-<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: 'constexpr' call flows off the end of the function</td></tr></table></div></div></section></section>
+<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: 'constexpr' call flows off the end of the function</td></tr></table></div>
+<div class="paragraph"><p>辅助工具： <a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></div></div></section></section>
 <section id="_reference"><h2>Reference</h2><div class="slide-content"><div class="ulist"><ul><li><p><a href="http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html">Introduction to C++ Metaprogramming</a></p></li><li><p><a href="https://www.youtube.com/watch?v=A3_xrqr5Kdw">C Weekly - Ep 231 - Multiple Destructors in C20?! How and Why</a></p></li><li><p><a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></li><li><p><a href="https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html">Exploring Undefined Behavior Using Constexpr</a></p></li></ul></div></div></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
