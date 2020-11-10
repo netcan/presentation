@@ -551,8 +551,150 @@ void bar(){
     constexpr int x = foo(0); <i class="conum" data-value="1"></i><b>(1)</b>
 }</code></pre></div></div>
 <div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: 'constexpr' call flows off the end of the function</td></tr></table></div>
+<div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+如下代码的意图</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr void push_back(Value t_v) {
+    if (m_size &gt;= Size) {
+        throw std::range_error("Index past end of vector");
+    } else {
+        m_data[m_size++] = std::move(t_v);
+    }
+}</code></pre></div></div>
 <div class="paragraph"><p>辅助工具： <a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></div></div></section></section>
-<section id="_reference"><h2>Reference</h2><div class="slide-content"><div class="ulist"><ul><li><p><a href="http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html">Introduction to C++ Metaprogramming</a></p></li><li><p><a href="https://www.youtube.com/watch?v=A3_xrqr5Kdw">C Weekly - Ep 231 - Multiple Destructors in C20?! How and Why</a></p></li><li><p><a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></li><li><p><a href="https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html">Exploring Undefined Behavior Using Constexpr</a></p></li></ul></div></div></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
+<section id="_constexpr应用"><h2>constexpr应用</h2><div class="slide-content"><div class="ulist"><ul><li><p>领域特定语言(EDSL)</p><div class="ulist"><ul><li><p>编译期解析Json (Parser Combinator)</p></li><li><p>编译期构建正则表达式FSM (LL1分析器)</p></li><li><p>constexpr-sql (递归下降分析器)</p></li><li><p>graph-dsl (语法树文法，lisp风格)</p></li></ul></div></li><li><p>constexpr元编程库</p><div class="ulist"><ul><li><p>boost::hana</p></li><li><p>holo</p></li></ul></div></li></ul></div></div></section>
+<section><section id="_领域特定语言edsl"><h2>领域特定语言(EDSL)</h2></section><section id="_编译期解析json_parser_combinator"><h2>编译期解析Json (Parser Combinator)</h2><div class="slide-content"><div class="paragraph"><p>完整Talk： <a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">CppCon 2017: Ben Deane &amp; Jason Turner “constexpr ALL the Things!”</a></p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr auto jsv
+  = R"({
+        "feature-x-enabled": true,
+        "value-of-y": 1729,
+        "z-options": {"a": null,
+                      "b": "220 and 284",
+                      "c": [6, 28, 496]}
+       })"_json;
+if constexpr (jsv["feature-x-enabled"]) {
+  // code for feature x
+} else {
+  // code when feature x turned off
+}</code></pre></div></div></div></section><section id="_编译期解析json_parser_combinator_2"><h2>编译期解析Json (Parser Combinator)</h2><div class="slide-content"><div class="paragraph"><p>Parser Combinator:</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename T&gt;
+using Parser = auto(*)(string_view) -&gt; optional&lt;pair&lt;T, ParserInput&gt;&gt;;</code></pre></div></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">// a parser for skipping whitespace
+constexpr auto skip_whitespace() {
+    constexpr auto ws_parser = make_char_parser(' ')
+                             | make_char_parser('\t')
+                             | make_char_parser('\n')
+                             | make_char_parser('\r');
+    return many(ws_parser, std::monostate{}, [] (auto m, auto) { return m; });
+}
+
+// parse a JSON array
+static constexpr auto array_parser() {
+    return make_char_parser('[') &lt;
+            separated_by_val(value_parser(),
+                            skip_whitespace() &lt; make_char_parser(','),
+                            Sizes{1, 0}, std::plus&lt;&gt;{})
+            &gt; skip_whitespace()
+        &gt; (make_char_parser(']') | fail(']', [] { throw "expected ]"; }));
+}</code></pre></div></div></div></section><section id="_编译期正则表达式ll1分析器"><h2>编译期正则表达式(LL1分析器)</h2><div class="slide-content"><div class="paragraph"><p><a href="https://github.com/hanickadot/compile-time-regular-expressions">https://github.com/hanickadot/compile-time-regular-expressions</a></p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">struct date {
+    std::string_view year;
+    std::string_view month;
+    std::string_view day;
+};
+
+std::optional&lt;date&gt; extract_date(std::string_view s) {
+    if (auto [whole, year, month, day] =
+            ctre::match&lt;"(\\d{4})/(\\d{1,2})/(\\d{1,2})"&gt;(s); whole) {
+        return date{year, month, day};
+    } else {
+        return std::nullopt;
+    }
+}
+
+static_assert(extract_date("2018/08/27"sv).has_value());
+static_assert((*extract_date("2018/08/27"sv)).year == "2018"sv);
+static_assert((*extract_date("2018/08/27"sv)).month == "08"sv);
+static_assert((*extract_date("2018/08/27"sv)).day == "27"sv);</code></pre></div></div></div></section><section id="_constexpr_sql_递归下降分析器"><h2>constexpr-sql (递归下降分析器)</h2><div class="slide-content"><div class="paragraph"><p><a href="https://github.com/mkitzan/constexpr-sql">https://github.com/mkitzan/constexpr-sql</a></p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using books = sql::schema&lt;"books",
+        sql::index&lt;"title"&gt;,
+		sql::column&lt;"title", std::string&gt;,
+		sql::column&lt;"genre", std::string&gt;,
+		sql::column&lt;"year",  unsigned&gt;,
+		sql::column&lt;"pages", unsigned&gt;&gt;;
+
+using authored = sql::schema&lt;"authored",
+        sql::index&lt;&gt;,
+		sql::column&lt;"title", std::string&gt;,
+		sql::column&lt;"name",  std::string&gt;&gt;;
+
+using query = sql::query&lt;R"(
+    SELECT title AS book, name AS author, year, pages
+    FROM books NATURAL JOIN (SELECT * FROM authored WHERE name = "Harlan Ellison")
+    WHERE year = 1967 OR year &gt;= 1972 AND genre = "science fiction"
+    )", books, authored&gt;;
+
+authored a { sql::load&lt;authored&gt;("tests/data/authored.tsv", '\t') };
+books    b { sql::load&lt;books&gt;("tests/data/books.tsv",       '\t') };
+
+for (query q { b, a }; auto const&amp; [book, author, year, pages]: q)
+    std::cout &lt;&lt; book &lt;&lt; '\t' &lt;&lt; author &lt;&lt; '\t' &lt;&lt; year &lt;&lt; '\t' &lt;&lt; pages &lt;&lt; '\n';</code></pre></div></div></div></section><section id="_graph_dsl_语法树文法lisp风格"><h2>graph-dsl (语法树文法，lisp风格)</h2><div class="slide-content"><div class="paragraph"><p><a href="https://github.com/godsme/graph-dsl">https://github.com/godsme/graph-dsl</a></p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using sub_graph_1 = SUBGRAPH(
+    (root_0 , (port_1) -&gt; node_8
+            , (port_2) -&gt; MAYBE(cond_2, node_3)
+            , (port_3) -&gt; EITHER(cond_1, node_8, node_4)
+            , (port_4) -&gt; FORK(node_5, node_4, MAYBE(cond_2, node_8))),
+    (node_5 , (port_5) -&gt; node_8
+            , (port_6) -&gt; FORK(node_4, MAYBE(cond_2, node_3))),
+    (node_3 , (port_7) -&gt; node_4
+            , (port_8) -&gt; FORK(node_8, node_6)
+            , (port_9) -&gt; node_7));
+
+using sub_graph_2 = SUBGRAPH(
+    (root_0  , (port_1) -&gt; node_9),
+    (root_1  , (port_1) -&gt; node_10
+             , (port_2) -&gt; MAYBE(cond_2, node_11)
+             , (port_3) -&gt; EITHER(cond_1, node_12, node_13)),
+    (node_11 , (port_10) -&gt; node_12
+             , (port_11) -&gt; FORK(node_13, node_14)
+             , (port_12) -&gt; node_15));
+
+using graph = GRAPH(
+    (root_0, root_1),
+    (cond_3) -&gt; sub_graph_1,
+    (cond_4) -&gt; sub_graph_2);
+
+graph g;
+while (g.refresh(context) == OK) { };</code></pre></div></div></div></section></section>
+<section><section id="_constexpr元编程库"><h2>constexpr元编程库</h2></section><section id="_boosthana"><h2>boost::hana</h2><div class="slide-content"><div class="paragraph"><p><a href="https://www.boost.org/doc/libs/1_61_0/libs/hana/doc/html/index.html">https://www.boost.org/doc/libs/1_61_0/libs/hana/doc/html/index.html</a></p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr auto result = append(make_tuple(type_c&lt;int&gt;, type_c&lt;double&gt;), type_c&lt;long&gt;);
+static_assert(make_basic_tuple(type_c&lt;int&gt;, type_c&lt;double&gt;, type_c&lt;long&gt;) == result);
+
+constexpr auto result = concat(make_tuple(type_c&lt;int&gt;, type_c&lt;double&gt;),
+                               make_tuple(type_c&lt;long&gt;, type_c&lt;float&gt;));
+static_assert(make_basic_tuple(
+        type_c&lt;int&gt;, type_c&lt;double&gt;, type_c&lt;long&gt;, type_c&lt;float&gt;
+    ) == result);
+
+auto result = partition(tuple_t&lt;int, double, double, int&gt;,
+                        [](auto x) { return x == type_c&lt;int&gt;; });
+static_assert(make_pair(tuple_t&lt;int, int&gt;, tuple_t&lt;double, double&gt;) == result);</code></pre></div></div></div></section><section id="_holo"><h2>holo</h2><div class="slide-content"><div class="paragraph"><p>编译期Ranges: <a href="https://github.com/godsme/holo">https://github.com/godsme/holo</a></p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr static auto sorted_non_leaf_nodes =
+    all_decedents_map
+    | holo::sort([](auto l, auto r) {
+        return holo::contains(holo::first(l), holo::second(r)); })
+    | holo::transform([](auto elem) {
+        return holo::first(elem); })
+    | holo::reverse();
+
+
+constexpr static auto root_nodes =
+    holo::list_t&lt;NODES...&gt;
+    | holo::filter([](auto elem){
+        return decltype(elem)::type::is_root == holo::true_c; })
+    | holo::transform([](auto elem){
+        return holo::type_c&lt;typename decltype(elem)::type::node_type&gt;;
+    });</code></pre></div></div></div></section></section>
+<section id="_reference"><h2>Reference</h2><div class="slide-content"><div class="ulist"><ul><li><p><a href="http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html">Introduction to C++ Metaprogramming</a></p></li><li><p><a href="https://www.youtube.com/watch?v=A3_xrqr5Kdw">C Weekly - Ep 231 - Multiple Destructors in C20?! How and Why</a></p></li><li><p><a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></li><li><p><a href="https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html">Exploring Undefined Behavior Using Constexpr</a></p></li><li><p><a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">CppCon 2017: Ben Deane &amp; Jason Turner “constexpr ALL the Things!”</a></p></li></ul></div></div></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
   if (!(slide.classList.contains('canvas') || slide.classList.contains('background'))) return;
