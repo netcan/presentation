@@ -1,0 +1,44 @@
+@import url('../presentation.css');
+
+.reveal code {
+    font-size: 16pt;
+}
+
+.reveal pre {
+    box-shadow: none;
+}
+
+.reveal pre code {
+    background: #ffffff00;
+    border: 0;
+}
+
+.reveal h1 {
+  text-shadow: none;
+  font-size: 70pt;
+}
+
+.reveal h2 {
+  font-size: 40pt;
+}
+
+.reveal h3 {
+  font-size: 40pt;
+}
+
+.reveal h4 {
+  font-size: 35pt;
+}
+
+/* condensed callouts */
+.reveal .colist {
+  font-size: 16pt;
+}
+
+section .dlist, section .ulist, section .olist {
+    font-size: 22pt;
+}
+
+section .paragraph {
+    font-size: 20pt;
+}

@@ -1,5 +1,5 @@
 = CONSTEXPR 从 11 到 20
-:customcss: ../presentation.css
+:customcss: ./custom.css
 :revealjsdir: ../node_modules/reveal.js
 :revealjs_plugins: ../presentation_plugins.js
 :revealjs_plugins_configuration: ../presentation_plugins_conf.js
@@ -12,14 +12,17 @@
 :revealjs_transition: slide
 :revealjs_slideNumber: c/t
 :revealjs_fragmentInURL: true
+:revealjs_width: 1280
+:revealjs_height: 720
+:revealjs_margin: 0.1
 :icons: font
 :stem:
 Netcan {docdate} @Shanghai
 
 [subtitle]#constexpr auto 😀#
 
-template metaprogramming is dead +
-long live constexpr
+[subtitle]#template metaprogramming is dead +
+long live constexpr#
 
 include::../common/self_introduction.adoc[]
 
@@ -382,7 +385,7 @@ image::brain_fuck_perf.png[]
 0.146s vs 3.970s ! 27x speed up icon:angle-double-up[role="red"]
 
 === constexpr vs 模板元编程
-模板元 http://redd.it/jnz5p1[http://redd.it/jnz5p1]
+*模板元* http://redd.it/jnz5p1[http://redd.it/jnz5p1]
 
 * Looks both *scary* and *exciting* at the same time. :P
 * After reading this code I gotta *remove C++* from the programming languages I know list.  Sweet mother of god this is *incredible*! :,)
@@ -392,7 +395,7 @@ image::brain_fuck_perf.png[]
 * Actually, for what it is, it's incredibly *readable*.
 * Awesome, Now make a c++ compiler with brainfuck :p
 
-constexpr http://redd.it/jp7k0u[http://redd.it/jp7k0u]
+*constexpr* http://redd.it/jp7k0u[http://redd.it/jp7k0u]
 
 * Amazing, very neat, show the *power* of constexpr functions, way more *readable* than template.
 * Wow. Your constexpr code is vastly more *readable* than the template metaprogramming one.
@@ -494,31 +497,41 @@ constexpr const char* str = "hello world";
 static_assert(strLen(str) == 11);
 ----
 
+[.columns]
 === constexpr模板常量
+[.column]
+--
 做常量别名
 [source,cpp]
 ----
 template<class T>
-constexpr bool is_class_v = is_class<T>::value;
+constexpr bool is_class_v =
+    std::is_class<T>::value;
 ----
 
 表达式计算
 [source,cpp]
 ----
 template<char c>
-constexpr bool is_digit = (c >= '0' && c <= '9');
+constexpr bool is_digit =
+    (c >= '0' && c <= '9');
 template<char c>
-constexpr bool is_digit_or_dot = (is_digit<c> || c == '.');
+constexpr bool is_digit_or_dot =
+    (is_digit<c> || c == '.');
 
 static_assert(! is_digit<'x'>);
 static_assert(is_digit<'0'>);
 ----
+--
 
+[.column]
+--
 模板特化
 [source,cpp]
 ----
 template<size_t N>
-constexpr size_t fibonacci = fibonacci<N - 1> + fibonacci<N - 2>;
+constexpr size_t fibonacci =
+    fibonacci<N - 1> + fibonacci<N - 2>;
 template<>
 constexpr size_t fibonacci<0> = 0;
 template<>
@@ -526,6 +539,7 @@ constexpr size_t fibonacci<1> = 1;
 
 static_assert(fibonacci<10> == 55);
 ----
+--
 
 === 折叠表达式
 [source,cpp,subs="verbatim,quotes"]
@@ -619,7 +633,6 @@ icon:question[role="orange"]
 [source,cpp]
 ----
 struct OptionalTrivially {};
-
 template <typename T, typename Contained>
 struct OptionalNonTrivially {
     ~OptionalNonTrivially() {
@@ -638,7 +651,6 @@ struct Optional: conditional_t<is_trivially_destructible_v<Contained>,
         initialized_ = true;
         return *this;
     }
-
     Storage<Contained> storage_;
     bool initialized_{};
 };
@@ -692,21 +704,29 @@ struct Optional {
 };
 ----
 
+[.columns]
 === 检测Undefined Behaviour
+[.column]
+--
 [source,cpp]
 ----
-const double x1=100/0;                               // <1>
-const int x2 = std::numeric_limits<int>::min() / -1; // <2>
+const double x1=100/0; // <1>
+const int x2 =
+    numeric_limits<int>::min() / -1; // <2>
 
-constexpr double y1=100/0;                               // <3>
-constexpr int y2 = std::numeric_limits<int>::min() / -1; // <4>
+constexpr double y1=100/0; // <3>
+constexpr int y2 =
+    numeric_limits<int>::min() / -1; // <4>
 ----
 
 <1> warning: division by zero
 <2> no warning in clang
 <3> error: division by zero is not a constant expression
 <4> error: overflow in constant expression
+--
 
+[.column]
+--
 [source,cpp]
 ----
 constexpr int bar() {
@@ -717,8 +737,12 @@ constexpr int bar() {
 constexpr auto foo = bar(); // <1>
 ----
 <1> error: dereferencing a null pointer
+--
 
+[.columns]
 === 检测Undefined Behaviour
+[.column]
+--
 [source,cpp]
 ----
 constexpr int foo(const int *p) {
@@ -731,7 +755,10 @@ constexpr void bar() {
 }
 ----
 <1> error: array subscript value '12' is outside the bounds of array 'arr' of type 'const int [10]'
+--
 
+[.column]
+--
 [source,cpp]
 ----
 constexpr int& foo(){
@@ -745,8 +772,12 @@ constexpr int bar() {
 }
 ----
 <1> error: constexpr variable 'x' must be initialized by a constant expression. note: read of variable whose lifetime has ended
+--
 
+[.columns]
 === 检测Undefined Behaviour
+[.column]
+--
 [source,cpp]
 ----
 constexpr int foo(int x) {
@@ -759,6 +790,11 @@ void bar(){
 ----
 <1> error: 'constexpr' call flows off the end of the function
 
+辅助工具： https://github.com/trailofbits/constexpr-everything[https://github.com/trailofbits/constexpr-everything]
+--
+
+[.column]
+--
 icon:question[role="orange"]
 如下代码的意图
 
@@ -772,8 +808,7 @@ constexpr void push_back(Value t_v) {
     }
 }
 ----
-
-辅助工具： https://github.com/trailofbits/constexpr-everything[https://github.com/trailofbits/constexpr-everything]
+--
 
 == constexpr应用
 * 领域特定语言(EDSL)
@@ -790,18 +825,18 @@ constexpr void push_back(Value t_v) {
 完整Talk： https://www.youtube.com/watch?v=PJwd4JLYJJY[CppCon 2017: Ben Deane & Jason Turner “constexpr ALL the Things!”]
 [source,cpp]
 ----
-constexpr auto jsv
-  = R"({
-        "feature-x-enabled": true,
-        "value-of-y": 1729,
-        "z-options": {"a": null,
-                      "b": "220 and 284",
-                      "c": [6, 28, 496]}
-       })"_json;
+constexpr auto jsv = R"({
+    "feature-x-enabled": true,
+    "value-of-y": 1729,
+    "z-options": {"a": null,
+                  "b": "220 and 284",
+                  "c": [6, 28, 496]} }
+)"_json;
+
 if constexpr (jsv["feature-x-enabled"]) {
-  // code for feature x
+    // code for feature x
 } else {
-  // code when feature x turned off
+    // code when feature x turned off
 }
 ----
 
@@ -864,17 +899,12 @@ static_assert((*extract_date("2018/08/27"sv)).day == "27"sv);
 https://github.com/mkitzan/constexpr-sql[https://github.com/mkitzan/constexpr-sql]
 [source,cpp]
 ----
-using books = sql::schema<"books",
-        sql::index<"title">,
-		sql::column<"title", std::string>,
-		sql::column<"genre", std::string>,
-		sql::column<"year",  unsigned>,
-		sql::column<"pages", unsigned>>;
-
-using authored = sql::schema<"authored",
-        sql::index<>,
-		sql::column<"title", std::string>,
-		sql::column<"name",  std::string>>;
+using books = sql::schema<"books",           using authored = sql::schema<"authored",
+    sql::index<"title">,                         sql::index<>,
+    sql::column<"title", std::string>,           sql::column<"title", std::string>,
+    sql::column<"genre", std::string>,           sql::column<"name",  std::string>>;
+    sql::column<"year",  unsigned>,
+    sql::column<"pages", unsigned>>;
 
 using query = sql::query<R"(
     SELECT title AS book, name AS author, year, pages
@@ -896,23 +926,17 @@ https://github.com/godsme/graph-dsl[https://github.com/godsme/graph-dsl]
 using sub_graph_1 = SUBGRAPH(
     (root_0 , (port_1) -> node_8
             , (port_2) -> MAYBE(cond_2, node_3)
-            , (port_3) -> EITHER(cond_1, node_8, node_4)
             , (port_4) -> FORK(node_5, node_4, MAYBE(cond_2, node_8))),
     (node_5 , (port_5) -> node_8
             , (port_6) -> FORK(node_4, MAYBE(cond_2, node_3))),
-    (node_3 , (port_7) -> node_4
-            , (port_8) -> FORK(node_8, node_6)
+    (node_3 , (port_8) -> FORK(node_8, node_6)
             , (port_9) -> node_7));
-
 using sub_graph_2 = SUBGRAPH(
     (root_0  , (port_1) -> node_9),
-    (root_1  , (port_1) -> node_10
-             , (port_2) -> MAYBE(cond_2, node_11)
+    (root_1  , (port_2) -> MAYBE(cond_2, node_11)
              , (port_3) -> EITHER(cond_1, node_12, node_13)),
-    (node_11 , (port_10) -> node_12
-             , (port_11) -> FORK(node_13, node_14)
+    (node_11 , (port_11) -> FORK(node_13, node_14)
              , (port_12) -> node_15));
-
 using graph = GRAPH(
     (root_0, root_1),
     (cond_3) -> sub_graph_1,
@@ -947,12 +971,9 @@ static_assert(make_pair(tuple_t<int, int>, tuple_t<double, double>) == result);
 ----
 constexpr static auto sorted_non_leaf_nodes =
     all_decedents_map
-    | holo::sort([](auto l, auto r) {
-        return holo::contains(holo::first(l), holo::second(r)); })
-    | holo::transform([](auto elem) {
-        return holo::first(elem); })
+    | holo::sort([](auto l, auto r) { return holo::contains(holo::first(l), holo::second(r)); })
+    | holo::transform([](auto elem) { return holo::first(elem); })
     | holo::reverse();
-
 
 constexpr static auto root_nodes =
     holo::list_t<NODES...>
@@ -972,10 +993,10 @@ http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0596r0.html[P0596]
 [source,cpp]
 ----
 constexpr int sqr(int n) {
-  if (n > 100) {
-    std::constexpr_report("Largish sqr operand", n);
-  }
-  return n*n;
+    if (n > 100) {
+        std::constexpr_report("Largish sqr operand", n);
+    }
+    return n*n;
 }
 constexpr int n1 = sqr(128); // <1>
 int x = 1000;
@@ -991,7 +1012,6 @@ https://wg21.link/p1306[P1306R1: Expansion statements]
 ----
 #include <iostream>
 #include <experimental/meta>
-
 namespace meta = std::experimental::meta;
 
 namespace n {
@@ -1018,6 +1038,9 @@ int main() {
 * https://www.youtube.com/watch?v=A3_xrqr5Kdw[C\++ Weekly - Ep 231 - Multiple Destructors in C++20?! How and Why]
 * https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html[Exploring Undefined Behavior Using Constexpr]
 * https://www.youtube.com/watch?v=PJwd4JLYJJY[CppCon 2017: Ben Deane & Jason Turner “constexpr ALL the Things!”]
+* 我的博客 https://netcan.github.io/[https://netcan.github.io/]
+* 相关代码 https://github.com/netcan/recipes[https://github.com/netcan/recipes]
+* 演讲文件 https://github.com/netcan/presentation[https://github.com/netcan/presentation]
 
 [state=thank]
 == Thank you!

@@ -154,9 +154,9 @@ TeX: { equationNumbers: { autoNumber: "none" } }
 link.rel = 'stylesheet';
 link.type = 'text/css';
 link.href = window.location.search.match( /print-pdf/gi ) ? "../node_modules/reveal.js/css/print/pdf.css" : "../node_modules/reveal.js/css/print/paper.css";
-document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="../presentation.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>CONSTEXPR 从 11 到 20</h1><div class="preamble"><div class="paragraph"><p><span class="subtitle">constexpr auto 😀</span></p></div>
-<div class="paragraph"><p>template metaprogramming is dead<br>
-long live constexpr</p></div></div><p class="author"><small>Netcan 2020-11-11 @Shanghai</small></p></section>
+document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="./custom.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>CONSTEXPR 从 11 到 20</h1><div class="preamble"><div class="paragraph"><p><span class="subtitle">constexpr auto 😀</span></p></div>
+<div class="paragraph"><p><span class="subtitle">template metaprogramming is dead<br>
+long live constexpr</span></p></div></div><p class="author"><small>Netcan 2020-11-11 @Shanghai</small></p></section>
 <section id="_自我介绍"><h2>自我介绍</h2><div class="slide-content"><div class="ulist"><ul><li><p>96年出生，18年毕业于合肥工业大学本科</p></li><li><p>高级工程师</p></li><li><p>知乎 <a href="https://www.zhihu.com/column/c_1289690410462785536">《魅力C++》</a> 专栏作者</p></li><li><p>兴趣：CS, OO, FP, Design, Coding, Writing</p></li><li><p>Skills: C/C++/Rust, Haskell/Scheme, Bash/Python/Javascript/PHP</p></li></ul></div></div></section>
 <section id="_议程"><h2>议程</h2><div class="slide-content"><div class="ulist"><ul><li><p>编译时计算（元编程）</p></li><li><p>演进历史</p></li><li><p>constexpr vs 模板元</p></li><li><p>深入constexpr</p></li><li><p>应用</p></li><li><p>展望未来</p></li><li><p>结论</p></li></ul></div></div></section>
 <section><section id="_编译时计算元编程"><h2>编译时计算（元编程）</h2><div class="slide-content"><div class="ulist"><ul><li><p>零成本抽象</p></li><li><p>编译时多态 (eg. Policy Class, Tag Dispatcher, CRTP)</p></li><li><p>值计算</p></li><li><p>类型计算(Type Traits)</p></li><li><p>类型安全 (eg. 单位运算, Phantom Types)</p></li><li><p>内部领域特定语言(EDSL)</p></li></ul></div></div></section><section id="_编译时计算元编程_风格"><h2>编译时计算（元编程）&amp; 风格</h2><div class="slide-content"><div class="ulist"><ul><li><p>模板元编程</p></li><li><p>Constexpr all the things!</p></li><li><p>两者结合</p></li></ul></div></div></section></section>
@@ -354,9 +354,9 @@ constexpr auto res = BRAIN_FUCK(R"(
     &gt;---.+++++++..+++.&gt;&gt;.&lt;-.&lt;.+++.------.--------.&gt;&gt;+.&gt;++.
 )");</code></pre></div></div></div></section></section>
 <section><section id="_constexpr_vs_模板元编程_2"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
-编译时间</p></div><div class="imageblock" style=""><img src="brain_fuck_perf.png" alt="brain fuck perf"></div><div class="paragraph"><p>0.146s vs 3.970s ! 27x speed up <span class="icon red"><i class="fa fa-angle-double-up"></i></span></p></div></div></section><section id="_constexpr_vs_模板元编程_3"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p>模板元 <a href="http://redd.it/jnz5p1">http://redd.it/jnz5p1</a></p></div>
+编译时间</p></div><div class="imageblock" style=""><img src="brain_fuck_perf.png" alt="brain fuck perf"></div><div class="paragraph"><p>0.146s vs 3.970s ! 27x speed up <span class="icon red"><i class="fa fa-angle-double-up"></i></span></p></div></div></section><section id="_constexpr_vs_模板元编程_3"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="paragraph"><p><strong>模板元</strong> <a href="http://redd.it/jnz5p1">http://redd.it/jnz5p1</a></p></div>
 <div class="ulist"><ul><li><p>Looks both <strong>scary</strong> and <strong>exciting</strong> at the same time. :P</p></li><li><p>After reading this code I gotta <strong>remove C++</strong> from the programming languages I know list.  Sweet mother of god this is <strong>incredible</strong>! :,)</p></li><li><p>Nice, definitely <strong>scary</strong> stuff though.</p></li><li><p>Where does one learn to use templates like that? I have no idea what I&#8217;m looking at</p></li><li><p>From my experience, templates like this are <strong>hard to casually read</strong> even if you are the one who wrote them. It makes perfect sense when you are <strong>creating the monstrosity</strong> though.</p></li><li><p>Actually, for what it is, it&#8217;s incredibly <strong>readable</strong>.</p></li><li><p>Awesome, Now make a c++ compiler with brainfuck :p</p></li></ul></div>
-<div class="paragraph"><p>constexpr <a href="http://redd.it/jp7k0u">http://redd.it/jp7k0u</a></p></div>
+<div class="paragraph"><p><strong>constexpr</strong> <a href="http://redd.it/jp7k0u">http://redd.it/jp7k0u</a></p></div>
 <div class="ulist"><ul><li><p>Amazing, very neat, show the <strong>power</strong> of constexpr functions, way more <strong>readable</strong> than template.</p></li><li><p>Wow. Your constexpr code is vastly more <strong>readable</strong> than the template metaprogramming one.</p></li></ul></div></div></section><section id="_constexpr_vs_模板元编程_4" class="columns"><h2>constexpr vs 模板元编程</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>简单设计：模板元</p></div>
 <div class="ulist"><ul><li><p>通过所有测试(static_assert) <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>没有重复，易于重用 <span class="icon green"><i class="fa fa-check-circle"></i></span></p></li><li><p>表达意图，易于理解（~200 lines） <span class="icon red"><i class="fa fa-times"></i></span></p></li><li><p>没有冗余，避免过度设计 <span class="icon orange"><i class="fa fa-ellipsis-h"></i></span></p></li></ul></div></div></div>
 <div class="openblock column"><div class="content"><div class="paragraph"><p>简单设计：constexpr</p></div>
@@ -380,26 +380,30 @@ static_assert(strLen(STR) == 11);</code></pre></div></div>
 static_assert(strLen(str) == 11);</code></pre></div></div>
 <div class="paragraph"><p><span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span></p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr const char* str = "hello world";
-static_assert(strLen(str) == 11);</code></pre></div></div></div></section><section id="_constexpr模板常量"><h2>constexpr模板常量</h2><div class="slide-content"><div class="paragraph"><p>做常量别名</p></div>
+static_assert(strLen(str) == 11);</code></pre></div></div></div></section><section id="_constexpr模板常量" class="columns"><h2>constexpr模板常量</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="paragraph"><p>做常量别名</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;class T&gt;
-constexpr bool is_class_v = is_class&lt;T&gt;::value;</code></pre></div></div>
+constexpr bool is_class_v =
+    std::is_class&lt;T&gt;::value;</code></pre></div></div>
 <div class="paragraph"><p>表达式计算</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c&gt;
-constexpr bool is_digit = (c &gt;= '0' &amp;&amp; c &lt;= '9');
+constexpr bool is_digit =
+    (c &gt;= '0' &amp;&amp; c &lt;= '9');
 template&lt;char c&gt;
-constexpr bool is_digit_or_dot = (is_digit&lt;c&gt; || c == '.');
+constexpr bool is_digit_or_dot =
+    (is_digit&lt;c&gt; || c == '.');
 
 static_assert(! is_digit&lt;'x'&gt;);
-static_assert(is_digit&lt;'0'&gt;);</code></pre></div></div>
-<div class="paragraph"><p>模板特化</p></div>
+static_assert(is_digit&lt;'0'&gt;);</code></pre></div></div></div></div>
+<div class="openblock column"><div class="content"><div class="paragraph"><p>模板特化</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;size_t N&gt;
-constexpr size_t fibonacci = fibonacci&lt;N - 1&gt; + fibonacci&lt;N - 2&gt;;
+constexpr size_t fibonacci =
+    fibonacci&lt;N - 1&gt; + fibonacci&lt;N - 2&gt;;
 template&lt;&gt;
 constexpr size_t fibonacci&lt;0&gt; = 0;
 template&lt;&gt;
 constexpr size_t fibonacci&lt;1&gt; = 1;
 
-static_assert(fibonacci&lt;10&gt; == 55);</code></pre></div></div></div></section><section id="_折叠表达式"><h2>折叠表达式</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c, char... cs&gt;
+static_assert(fibonacci&lt;10&gt; == 55);</code></pre></div></div></div></div></div></section><section id="_折叠表达式"><h2>折叠表达式</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template&lt;char c, char... cs&gt;
 constexpr bool is_sign_valid = ((c == '+' || c == '-') &amp;&amp; sizeof...(cs) &gt; 0)
                                 || is_digit_or_dot&lt;c&gt;;
 
@@ -455,7 +459,6 @@ static_assert(CountMember&lt;Test&gt;() == 4);</code></pre></div></div>
 <div class="imageblock" style=""><img src="constexpr_sort.png" alt="constexpr sort"></div></div></section><section id="_constexpr析构函数_析构优化"><h2>constexpr析构函数 - 析构优化</h2><div class="slide-content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何优化</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">struct OptionalTrivially {};
-
 template &lt;typename T, typename Contained&gt;
 struct OptionalNonTrivially {
     ~OptionalNonTrivially() {
@@ -474,7 +477,6 @@ struct Optional: conditional_t&lt;is_trivially_destructible_v&lt;Contained&gt;,
         initialized_ = true;
         return *this;
     }
-
     Storage&lt;Contained&gt; storage_;
     bool initialized_{};
 };</code></pre></div></div></div></section><section id="_constexpr析构函数_使用if_constexpr"><h2>constexpr析构函数 - 使用if constexpr</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename Contained&gt;
@@ -513,19 +515,21 @@ struct Optional {
 
     Storage&lt;Contained&gt; storage_;
     bool initialized_{};
-};</code></pre></div></div></div></section><section id="_检测undefined_behaviour"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">const double x1=100/0;                               <i class="conum" data-value="1"></i><b>(1)</b>
-const int x2 = std::numeric_limits&lt;int&gt;::min() / -1; <i class="conum" data-value="2"></i><b>(2)</b>
+};</code></pre></div></div></div></section><section id="_检测undefined_behaviour" class="columns"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">const double x1=100/0; <i class="conum" data-value="1"></i><b>(1)</b>
+const int x2 =
+    numeric_limits&lt;int&gt;::min() / -1; <i class="conum" data-value="2"></i><b>(2)</b>
 
-constexpr double y1=100/0;                               <i class="conum" data-value="3"></i><b>(3)</b>
-constexpr int y2 = std::numeric_limits&lt;int&gt;::min() / -1; <i class="conum" data-value="4"></i><b>(4)</b></code></pre></div></div>
-<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>warning: division by zero</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>no warning in clang</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>error: division by zero is not a constant expression</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>error: overflow in constant expression</td></tr></table></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int bar() {
+constexpr double y1=100/0; <i class="conum" data-value="3"></i><b>(3)</b>
+constexpr int y2 =
+    numeric_limits&lt;int&gt;::min() / -1; <i class="conum" data-value="4"></i><b>(4)</b></code></pre></div></div>
+<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>warning: division by zero</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>no warning in clang</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>error: division by zero is not a constant expression</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>error: overflow in constant expression</td></tr></table></div></div></div>
+<div class="openblock column"><div class="content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int bar() {
     int* p = nullptr;
     return *p;
 }
 
 constexpr auto foo = bar(); <i class="conum" data-value="1"></i><b>(1)</b></code></pre></div></div>
-<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: dereferencing a null pointer</td></tr></table></div></div></section><section id="_检测undefined_behaviour_2"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int foo(const int *p) {
+<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: dereferencing a null pointer</td></tr></table></div></div></div></div></section><section id="_检测undefined_behaviour_2" class="columns"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int foo(const int *p) {
     return *(p + 12); <i class="conum" data-value="1"></i><b>(1)</b>
 }
 
@@ -533,8 +537,8 @@ constexpr void bar() {
     constexpr int arr[10]{};
     constexpr int x = foo(arr);
 }</code></pre></div></div>
-<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: array subscript value '12' is outside the bounds of array 'arr' of type 'const int [10]'</td></tr></table></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int&amp; foo(){
+<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: array subscript value '12' is outside the bounds of array 'arr' of type 'const int [10]'</td></tr></table></div></div></div>
+<div class="openblock column"><div class="content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int&amp; foo(){
     int x = 23;
     return x;
 }
@@ -543,7 +547,7 @@ constexpr int bar() {
     constexpr int x = foo(); <i class="conum" data-value="1"></i><b>(1)</b>
     return x;
 }</code></pre></div></div>
-<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: constexpr variable 'x' must be initialized by a constant expression. note: read of variable whose lifetime has ended</td></tr></table></div></div></section><section id="_检测undefined_behaviour_3"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int foo(int x) {
+<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: constexpr variable 'x' must be initialized by a constant expression. note: read of variable whose lifetime has ended</td></tr></table></div></div></div></div></section><section id="_检测undefined_behaviour_3" class="columns"><h2>检测Undefined Behaviour</h2><div class="slide-content"><div class="openblock column"><div class="content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int foo(int x) {
    if(x) return 1;
 }
 
@@ -551,7 +555,8 @@ void bar(){
     constexpr int x = foo(0); <i class="conum" data-value="1"></i><b>(1)</b>
 }</code></pre></div></div>
 <div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>error: 'constexpr' call flows off the end of the function</td></tr></table></div>
-<div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
+<div class="paragraph"><p>辅助工具： <a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></div></div></div>
+<div class="openblock column"><div class="content"><div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如下代码的意图</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr void push_back(Value t_v) {
     if (m_size &gt;= Size) {
@@ -559,22 +564,21 @@ void bar(){
     } else {
         m_data[m_size++] = std::move(t_v);
     }
-}</code></pre></div></div>
-<div class="paragraph"><p>辅助工具： <a href="https://github.com/trailofbits/constexpr-everything">https://github.com/trailofbits/constexpr-everything</a></p></div></div></section></section>
+}</code></pre></div></div></div></div></div></section></section>
 <section id="_constexpr应用"><h2>constexpr应用</h2><div class="slide-content"><div class="ulist"><ul><li><p>领域特定语言(EDSL)</p><div class="ulist"><ul><li><p>编译期解析Json (Parser Combinator)</p></li><li><p>编译期构建正则表达式FSM (LL1分析器)</p></li><li><p>constexpr-sql (递归下降分析器)</p></li><li><p>graph-dsl (语法树文法，lisp风格)</p></li></ul></div></li><li><p>constexpr元编程库</p><div class="ulist"><ul><li><p>boost::hana</p></li><li><p>holo</p></li></ul></div></li></ul></div></div></section>
 <section><section id="_领域特定语言edsl"><h2>领域特定语言(EDSL)</h2></section><section id="_编译期解析json_parser_combinator"><h2>编译期解析Json (Parser Combinator)</h2><div class="slide-content"><div class="paragraph"><p>完整Talk： <a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">CppCon 2017: Ben Deane &amp; Jason Turner “constexpr ALL the Things!”</a></p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr auto jsv
-  = R"({
-        "feature-x-enabled": true,
-        "value-of-y": 1729,
-        "z-options": {"a": null,
-                      "b": "220 and 284",
-                      "c": [6, 28, 496]}
-       })"_json;
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr auto jsv = R"({
+    "feature-x-enabled": true,
+    "value-of-y": 1729,
+    "z-options": {"a": null,
+                  "b": "220 and 284",
+                  "c": [6, 28, 496]} }
+)"_json;
+
 if constexpr (jsv["feature-x-enabled"]) {
-  // code for feature x
+    // code for feature x
 } else {
-  // code when feature x turned off
+    // code when feature x turned off
 }</code></pre></div></div></div></section><section id="_编译期解析json_parser_combinator_2"><h2>编译期解析Json (Parser Combinator)</h2><div class="slide-content"><div class="paragraph"><p>Parser Combinator:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">template &lt;typename T&gt;
 using Parser = auto(*)(string_view) -&gt; optional&lt;pair&lt;T, ParserInput&gt;&gt;;</code></pre></div></div>
@@ -615,17 +619,12 @@ static_assert(extract_date("2018/08/27"sv).has_value());
 static_assert((*extract_date("2018/08/27"sv)).year == "2018"sv);
 static_assert((*extract_date("2018/08/27"sv)).month == "08"sv);
 static_assert((*extract_date("2018/08/27"sv)).day == "27"sv);</code></pre></div></div></div></section><section id="_constexpr_sql_递归下降分析器"><h2>constexpr-sql (递归下降分析器)</h2><div class="slide-content"><div class="paragraph"><p><a href="https://github.com/mkitzan/constexpr-sql">https://github.com/mkitzan/constexpr-sql</a></p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using books = sql::schema&lt;"books",
-        sql::index&lt;"title"&gt;,
-		sql::column&lt;"title", std::string&gt;,
-		sql::column&lt;"genre", std::string&gt;,
-		sql::column&lt;"year",  unsigned&gt;,
-		sql::column&lt;"pages", unsigned&gt;&gt;;
-
-using authored = sql::schema&lt;"authored",
-        sql::index&lt;&gt;,
-		sql::column&lt;"title", std::string&gt;,
-		sql::column&lt;"name",  std::string&gt;&gt;;
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using books = sql::schema&lt;"books",           using authored = sql::schema&lt;"authored",
+    sql::index&lt;"title"&gt;,                         sql::index&lt;&gt;,
+    sql::column&lt;"title", std::string&gt;,           sql::column&lt;"title", std::string&gt;,
+    sql::column&lt;"genre", std::string&gt;,           sql::column&lt;"name",  std::string&gt;&gt;;
+    sql::column&lt;"year",  unsigned&gt;,
+    sql::column&lt;"pages", unsigned&gt;&gt;;
 
 using query = sql::query&lt;R"(
     SELECT title AS book, name AS author, year, pages
@@ -641,23 +640,17 @@ for (query q { b, a }; auto const&amp; [book, author, year, pages]: q)
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">using sub_graph_1 = SUBGRAPH(
     (root_0 , (port_1) -&gt; node_8
             , (port_2) -&gt; MAYBE(cond_2, node_3)
-            , (port_3) -&gt; EITHER(cond_1, node_8, node_4)
             , (port_4) -&gt; FORK(node_5, node_4, MAYBE(cond_2, node_8))),
     (node_5 , (port_5) -&gt; node_8
             , (port_6) -&gt; FORK(node_4, MAYBE(cond_2, node_3))),
-    (node_3 , (port_7) -&gt; node_4
-            , (port_8) -&gt; FORK(node_8, node_6)
+    (node_3 , (port_8) -&gt; FORK(node_8, node_6)
             , (port_9) -&gt; node_7));
-
 using sub_graph_2 = SUBGRAPH(
     (root_0  , (port_1) -&gt; node_9),
-    (root_1  , (port_1) -&gt; node_10
-             , (port_2) -&gt; MAYBE(cond_2, node_11)
+    (root_1  , (port_2) -&gt; MAYBE(cond_2, node_11)
              , (port_3) -&gt; EITHER(cond_1, node_12, node_13)),
-    (node_11 , (port_10) -&gt; node_12
-             , (port_11) -&gt; FORK(node_13, node_14)
+    (node_11 , (port_11) -&gt; FORK(node_13, node_14)
              , (port_12) -&gt; node_15));
-
 using graph = GRAPH(
     (root_0, root_1),
     (cond_3) -&gt; sub_graph_1,
@@ -680,12 +673,9 @@ auto result = partition(tuple_t&lt;int, double, double, int&gt;,
 static_assert(make_pair(tuple_t&lt;int, int&gt;, tuple_t&lt;double, double&gt;) == result);</code></pre></div></div></div></section><section id="_holo"><h2>holo</h2><div class="slide-content"><div class="paragraph"><p>编译期Ranges: <a href="https://github.com/godsme/holo">https://github.com/godsme/holo</a></p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr static auto sorted_non_leaf_nodes =
     all_decedents_map
-    | holo::sort([](auto l, auto r) {
-        return holo::contains(holo::first(l), holo::second(r)); })
-    | holo::transform([](auto elem) {
-        return holo::first(elem); })
+    | holo::sort([](auto l, auto r) { return holo::contains(holo::first(l), holo::second(r)); })
+    | holo::transform([](auto elem) { return holo::first(elem); })
     | holo::reverse();
-
 
 constexpr static auto root_nodes =
     holo::list_t&lt;NODES...&gt;
@@ -696,10 +686,10 @@ constexpr static auto root_nodes =
     });</code></pre></div></div></div></section></section>
 <section><section id="_展望未来"><h2>展望未来</h2><div class="slide-content"><div class="ulist"><ul><li><p>constexpr_trace/constexpr_assert</p></li><li><p>for constexpr &amp; 静态反射</p></li></ul></div></div></section><section id="_constexpr_traceconstexpr_assert"><h2>constexpr_trace/constexpr_assert</h2><div class="slide-content"><div class="paragraph"><p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0596r0.html">P0596</a></p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">constexpr int sqr(int n) {
-  if (n &gt; 100) {
-    std::constexpr_report("Largish sqr operand", n);
-  }
-  return n*n;
+    if (n &gt; 100) {
+        std::constexpr_report("Largish sqr operand", n);
+    }
+    return n*n;
 }
 constexpr int n1 = sqr(128); <i class="conum" data-value="1"></i><b>(1)</b>
 int x = 1000;
@@ -708,7 +698,6 @@ int n2 = sqr(x);  <i class="conum" data-value="2"></i><b>(2)</b></code></pre></d
 <a href="https://wg21.link/p1306">P1306R1: Expansion statements</a></p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code data-lang="cpp" class="language-cpp hljs" data-noescape="true">#include &lt;iostream&gt;
 #include &lt;experimental/meta&gt;
-
 namespace meta = std::experimental::meta;
 
 namespace n {
@@ -723,7 +712,7 @@ int main() {
     return 0;
 }</code></pre></div></div></div></section></section>
 <section id="_结论"><h2>结论</h2><div class="slide-content"><div class="ulist"><ul><li><p>简化库、框架开发难度</p></li><li><p>更清晰的代码，更少的魔法</p></li><li><p>跨编译器兼容</p></li><li><p>更容易实现领域特定语言EDSL</p></li></ul></div></div></section>
-<section id="_reference"><h2>Reference</h2><div class="slide-content"><div class="ulist"><ul><li><p><a href="http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html">Introduction to C++ Metaprogramming</a></p></li><li><p><a href="https://www.youtube.com/watch?v=A3_xrqr5Kdw">C++ Weekly - Ep 231 - Multiple Destructors in C++20?! How and Why</a></p></li><li><p><a href="https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html">Exploring Undefined Behavior Using Constexpr</a></p></li><li><p><a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">CppCon 2017: Ben Deane &amp; Jason Turner “constexpr ALL the Things!”</a></p></li></ul></div></div></section>
+<section id="_reference"><h2>Reference</h2><div class="slide-content"><div class="ulist"><ul><li><p><a href="http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html">Introduction to C++ Metaprogramming</a></p></li><li><p><a href="https://www.youtube.com/watch?v=A3_xrqr5Kdw">C++ Weekly - Ep 231 - Multiple Destructors in C++20?! How and Why</a></p></li><li><p><a href="https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html">Exploring Undefined Behavior Using Constexpr</a></p></li><li><p><a href="https://www.youtube.com/watch?v=PJwd4JLYJJY">CppCon 2017: Ben Deane &amp; Jason Turner “constexpr ALL the Things!”</a></p></li><li><p>我的博客 <a href="https://netcan.github.io/">https://netcan.github.io/</a></p></li><li><p>相关代码 <a href="https://github.com/netcan/recipes">https://github.com/netcan/recipes</a></p></li><li><p>演讲文件 <a href="https://github.com/netcan/presentation">https://github.com/netcan/presentation</a></p></li></ul></div></div></section>
 <section id="_thank_you" data-state="thank"><h2>Thank you!</h2></section>
 <section id="_question" data-state="thank"><h2>Question?</h2></section></div></div><script src="../node_modules/reveal.js/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
@@ -863,8 +852,8 @@ Reveal.initialize({
   // The "normal" size of the presentation, aspect ratio will be preserved
   // when the presentation is scaled to fit different resolutions. Can be
   // specified using percentage units.
-  width: 960,
-  height: 700,
+  width: 1280,
+  height: 720,
 
   // Factor of the display size that should remain empty around the content
   margin: 0.1,
@@ -960,13 +949,13 @@ function toArray(o) {
 }
 
 Reveal.addEventListener('slidechanged', function () {
-  layoutSlideContents(960, 700)
+  layoutSlideContents(1280, 720)
 });
 Reveal.addEventListener('ready', function () {
-  layoutSlideContents(960, 700)
+  layoutSlideContents(1280, 720)
 });
 Reveal.addEventListener('resize', function () {
-  layoutSlideContents(960, 700)
+  layoutSlideContents(1280, 720)
 });</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/github-gist.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/languages/cpp.min.js"></script>

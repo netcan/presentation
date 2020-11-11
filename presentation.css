@@ -11,10 +11,6 @@
     background-color: yellow;
 }
 
-.reveal pre code {
-    max-height: none;
-}
-
 .reveal {
     font-family: 'Roboto', sans-serif;
     font-size: 40px;
@@ -152,6 +148,7 @@ section[data-state="thank"] h2 {
   /* font-size: 1.0em; */
   line-height: 1.2em;
   white-space: pre-wrap;
+  max-height: none;
 }
 
 .reveal blockquote {
