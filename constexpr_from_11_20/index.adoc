@@ -379,7 +379,7 @@ icon:question[role="orange"]
 
 image::brain_fuck_perf.png[]
 
-0.13s vs 4.088s ! 30x speed up icon:angle-double-up[role="red"]
+0.146s vs 3.970s ! 27x speed up icon:angle-double-up[role="red"]
 
 === constexpr vs 模板元编程
 模板元 http://redd.it/jnz5p1[http://redd.it/jnz5p1]
@@ -446,7 +446,7 @@ constexpr优缺点
 --
 
 == Constexpr all the things!
-image::constexpr-all-the-things.png[80%,80%]
+image::constexpr-all-the-things.png[80%,60%]
 
 == constexpr历程
 * C++11 引入constexpr简单函数
@@ -963,10 +963,65 @@ constexpr static auto root_nodes =
     });
 ----
 
+== 展望未来
+* constexpr_trace/constexpr_assert
+* for constexpr & 静态反射
+
+=== constexpr_trace/constexpr_assert
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0596r0.html[P0596]
+[source,cpp]
+----
+constexpr int sqr(int n) {
+  if (n > 100) {
+    std::constexpr_report("Largish sqr operand", n);
+  }
+  return n*n;
+}
+constexpr int n1 = sqr(128); // <1>
+int x = 1000;
+int n2 = sqr(x);  // <2>
+----
+<1> Some kind of output, ideally.
+<2> No diagnostic output.
+
+=== for constexpr & 静态反射
+https://twitter.com/cor3ntin/status/1127210941718962177[https://twitter.com/cor3ntin/status/1127210941718962177] +
+https://wg21.link/p1306[P1306R1: Expansion statements]
+[source,cpp]
+----
+#include <iostream>
+#include <experimental/meta>
+
+namespace meta = std::experimental::meta;
+
+namespace n {
+    struct hello {};
+    int world;
+};
+
+int main() {
+    static constexpr auto range = meta::range(reflexpr(n));
+    for...(constexpr auto member: range)
+        std::cout << meta::name_of(member) << " ";
+    return 0;
+}
+----
+
+== 结论
+* 简化库、框架开发难度
+* 更清晰的代码，更少的魔法
+* 跨编译器兼容
+* 更容易实现领域特定语言EDSL
+
 == Reference
 * http://odinthenerd.blogspot.com/2014/07/introduction-to-c-metaprogramming-part-1.html[Introduction to C++ Metaprogramming]
-* https://www.youtube.com/watch?v=A3_xrqr5Kdw[C++ Weekly - Ep 231 - Multiple Destructors in C++20?! How and Why]
-* https://github.com/trailofbits/constexpr-everything[https://github.com/trailofbits/constexpr-everything]
+* https://www.youtube.com/watch?v=A3_xrqr5Kdw[C\++ Weekly - Ep 231 - Multiple Destructors in C++20?! How and Why]
 * https://shafik.github.io/c++/undefined%20behavior/2019/05/11/explporing_undefined_behavior_using_constexpr.html[Exploring Undefined Behavior Using Constexpr]
 * https://www.youtube.com/watch?v=PJwd4JLYJJY[CppCon 2017: Ben Deane & Jason Turner “constexpr ALL the Things!”]
+
+[state=thank]
+== Thank you!
+
+[state=thank]
+== Question?
 
