@@ -41,6 +41,7 @@ include::../common/self_introduction.adoc[]
 * 值计算
 * 类型计算(Type Traits)
 * 类型安全 (eg. 单位运算, Phantom Types)
+* 静态反射
 * 内部领域特定语言(EDSL)
 
 === 编译时计算（元编程）& 风格
