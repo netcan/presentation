@@ -7,10 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Netcan <netcan1996@gmail.com> (http://www.netcan666.com/)",
+  "author": "Netcan <netcan1996@gmail.com> (https://netcan.github.io/)",
   "license": "ISC",
   "dependencies": {
-    "@asciidoctor/reveal.js": "^4.0.1",
+    "@asciidoctor/reveal.js": "^4.1.0",
     "asciidoctor": "^2.2.0"
   }
 }
