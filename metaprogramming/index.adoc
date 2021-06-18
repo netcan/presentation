@@ -33,7 +33,6 @@ include::../common/self_introduction.adoc[]
 
 == 模板介绍
 
-[%step]
 * 起初为了支持泛型替代宏而设计的语法
 * 类型安全，编译期提前检查错误
 * 人们无意中发现可以用于 [red]*编译期* 计算
@@ -41,7 +40,6 @@ include::../common/self_introduction.adoc[]
 
 == 泛型算法 & 宏
 
-[.fragment]
 [source,cpp]
 ----
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
@@ -49,14 +47,12 @@ MAX(a++, b++) // (((a++) > (b++)) ? (a++) : (b++))
 MAX(0, "123") // runtime error
 ----
 
-[.fragment]
 [source,cpp,subs="none"]
 ----
 void qsort( void *ptr, size_t count, size_t size,
     int (*comp)(const <mark>void *</mark>, const <mark>void *</mark>) );
 ----
 
-[.fragment]
 [source,cpp]
 ----
 int values[] = { 88, 56, 100, 2, 25 };
@@ -67,7 +63,6 @@ qsort(values, 5, sizeof(int), cmpfunc);
 ----
 
 === 泛型算法 & 模板函数
-[.fragment]
 [source,cpp]
 ----
 template<typename T>
@@ -76,20 +71,17 @@ T max(T&& a, T&& b) {
 }
 ----
 
-[.fragment]
 [source,cpp]
 ----
 max(0, "123"); // error: no matching function for call to 'max(int, const char [4])'
 ----
 
-[.fragment]
 [source,cpp]
 ----
 template<typename RandomIt, typename Compare>
 void sort(RandomIt first, RandomIt last, Compare comp);
 ----
 
-[.fragment]
 [source,cpp]
 ----
 int values[] = { 88, 56, 100, 2, 25 };
@@ -113,7 +105,6 @@ Collection_ ## TYPE make_Collection_ ## TYPE(size_t sz) {
 }
 #endif
 ----
-[.fragment]
 <1> 类型参数 `TYPE`
 <2> 实例化函数
 
@@ -136,11 +127,9 @@ int main() {
     Collection_double lstDouble = make_Collection_double(5);
 }
 ----
-[.fragment]
 <1> 实例化类型 `Collection_int`, `Collection_double`
 <2> 实例化成员函数
 
-[.fragment]
 NOTE: 这也称为预处理多态技术
 
 === 泛型容器 & 模板
@@ -163,7 +152,6 @@ int main() {
     Collection<double> lstDouble(5); // <2>
 }
 ----
-[.fragment]
 <1> 模板参数 `T`
 <2> 实例化类型 `Collection<int>`, `Collection<double>`
 
@@ -183,13 +171,11 @@ C++特性引进原则，得遵守不会带来额外开销，不论时间上还�
 
 == 元编程 & Metaprogramming
 
-[%step]
 * 编译器解析执行代码，并 *生成* 代码、数据
 * 将运行时逻辑挪到编译时计算，实现零成本抽象
 * 运行时拥有改变结构的能力，动静结合
 
 === 元编程 & 流派
-[%step]
 * https://www.youtube.com/watch?v=PJwd4JLYJJY[Constexpr all the things!]
 * 模板元编程
 * 两者结合
@@ -208,7 +194,6 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 --
 运行时交互
 
-[%step]
 * 数值
 * 对象
 --
@@ -217,7 +202,6 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 --
 编译时计算（常量）
 
-[%step]
 * 数值
 * 类型
 * 对象 (C++20)
@@ -226,7 +210,6 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 === 模板元编程
 函数式编程范式
 
-[%step]
 * 无副作用纯函数，Immutable
 * 延迟计算
 * 模式匹配
@@ -241,7 +224,6 @@ constexpr目前还不成熟，要求太高，C++20支持编译期分配内存后
 [.column]
 --
 计算Fibonacci数列: stem:[f(n) = f(n-1) + f(n-2)]
-[.fragment]
 [source,cpp]
 ----
 template <size_t N> // <1>
@@ -266,25 +248,21 @@ constexpr size_t Fibonacci_v = Fibonacci<N>::value; // <5>
 
 [.column.is-one-third]
 --
-[.fragment]
 <1> 模板元函数 [.blue]*输入* 参数N，`size_t` 表明输入参数为 [.blue]*值*
 <2> 模板元函数名 `Fibonacci`
 <3> 模板元函数 [.blue]*输出* 返回 [.blue]*值* `value`
 <4> 模式匹配，函数递归的边界条件
 <5> 别名，方便调用
 
-[.fragment]
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 Fibonacci<10>::value // 55
 Fibonacci_v<10> // 55
 ----
 
-[.fragment]
 TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`value` 作为函数的 [.blue]*返回值* +
 2. 模板元函数名后缀 `_v` 为其别名: `F_v<IN>` ，避免写一长串 `F<IN>::value` 的烦恼
 --
@@ -294,7 +272,6 @@ TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`value` 作为函�
 [.column]
 --
 计算类型 `T` 的指针类型 `T*`
-[.fragment]
 [source,cpp]
 ----
 template <typename T> // <1>
@@ -306,7 +283,6 @@ template <typename T>
 using AddPointer_t =
     typename AddPointer<T>::type; // <4>
 ----
-[.fragment]
 <1> 模板元函数 [.blue]*输入* 类型T，`typename` 表明输入参数是 [.blue]*类型*
 <2> 模板元函数名
 <3> 模板元函数 [.blue]*输出* 返回 [.blue]*类型* `type`
@@ -316,11 +292,9 @@ using AddPointer_t =
 [.column]
 --
 
-[.fragment]
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 typename AddPointer<int>::type px =
@@ -328,20 +302,16 @@ typename AddPointer<int>::type px =
 AddPointer_t<int> px2 = new int{5};
 ----
 
-[.fragment]
 TIP: 1. 约定 [.blue]*尖括号* 为模板元函数F调用，`type` 作为函数的 [.blue]*返回类型* +
 2. 模板元函数名后缀 `_t` 为其别名: `F_t<IN>` ，避免了写一长串 `typename F<IN>::type` 的烦恼
 --
 
 == 模板元编程：基础数据类型
-[.fragment]
 复合数据类型：TypeList
 
-[%step]
 * 输入多个 *类型* 参数：T1, T2, ...
 * 输出一个 TypeList 类型
 
-[.fragment]
 [source,cpp]
 ----
 template <typename ...Ts> // <1>
@@ -351,7 +321,6 @@ struct TypeList {
 };
 ----
 
-[.fragment]
 <1> 输入参数，...Ts [.blue]#模板参数包# 声明，表示接收任意多的类型参数： T1, T2, T3, ...
 <2> 输出类型，Ts... 表示展开 [.blue]#模板参数包#，展开后为T1, T2, T3, ...
 <3> 列表长度，`sizeof...` 操作符求参数包个数
@@ -360,35 +329,27 @@ struct TypeList {
 === 值与类型
 [.column]
 --
-[.fragment]
 [source,cpp]
 ----
 using BoolSet = TypeList<true, false>; // template argument for template type parameter must be a type
 ----
 
-[.fragment]
 icon:question[role="orange"]
 什么是值
 
-[.fragment]
 值是常量
 
-[.fragment]
 icon:question[role="orange"]
 什么是类型
 
-[.fragment]
 类型是值的集合
 
 
-[.fragment]
 icon:question[role="orange"]
 值与类型如何转换
 
-[.fragment]
 一一映射，就能相互转换
 
-[.fragment]
 [source,cpp]
 ----
 template<typename T, T v> // <1>
@@ -400,34 +361,27 @@ struct integral_constant {
 
 [.column]
 --
-[.fragment]
 <1> 指定类型，与具体的值
 <2> 存储其值
 
-[.fragment]
 值转换成类型：
 
-[.fragment]
 [source,cpp]
 ----
 using true_type = integral_constant<bool, true>;
 using false_type = integral_constant<bool, false>;
 ----
 
-[.fragment]
 类型转换成值：
 
-[.fragment]
 [source,cpp]
 ----
 true_type::value  // true
 false_type::value // false
 ----
 
-[.fragment]
 融入类型体系
 
-[.fragment]
 [source,cpp]
 ----
 using BoolSet = TypeList<true_type, false_type>; // Ok
@@ -439,7 +393,6 @@ using BoolSet = TypeList<true_type, false_type>; // Ok
 === TypeList
 基本操作
 
-[%step]
 * 向TypeList尾部插入一些类型: `append`
 * 类型参数转发: `exportTo`
 * 高阶函数
@@ -450,7 +403,6 @@ using BoolSet = TypeList<true_type, false_type>; // Ok
 === append
 向TypeList尾部插入一些类型
 
-[.fragment]
 [source,cpp]
 ----
 template <typename ...Ts>
@@ -460,15 +412,12 @@ struct TypeList {
 };
 ----
 
-[.fragment]
 <1> 输入一些需要插入的类型参数 `T...`
 <2> 输出插入类型之后的TypeList
 
-[.fragment]
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 TypeList<int, char>::append<long, double> // TypeList<int, char, long, double>
@@ -477,10 +426,8 @@ TypeList<int, char>::append<long, double> // TypeList<int, char, long, double>
 === exportTo
 类型参数转发
 
-[.fragment]
 将 `TypeList<Ts...>` 参数转发至其他模板类，例如转成： `std::tuple<Ts...>`
 
-[.fragment]
 [source,cpp]
 ----
 template <typename ...Ts>
@@ -490,18 +437,14 @@ struct TypeList {
 };
 ----
 
-[.fragment]
 <1> 输入一个模板类 T
 <2> 输出转发类型参数后的模板类 T<Ts...>
 
-[.fragment]
 NOTE: `template<typename ...> typename T` 表示模板类 `T` 接收可变类型参数
 
-[.fragment]
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 TypeList<int, char>::exportTo<std::tuple> // std::tuple<int, char>
@@ -511,14 +454,11 @@ TypeList<int, char>::exportTo<std::variant> // std::variant<int, char>
 == 高阶函数
 数学和计算机科学定义如下高阶函数：
 
-[.fragment]
 * 输入的参数为函数
 * 输出的参数为函数
 
-[.fragment]
 常用到的有：
 
-[.fragment]
 .Sort
 [source,cpp]
 ----
@@ -526,14 +466,12 @@ template<typename RandomIt, typename Compare>
 void sort(RandomIt first, RandomIt last, Compare comp); // <1>
 ----
 
-[.fragment]
 <1> sort为高阶函数，其输入参数为 `comp` 函数
 
 === Map高阶函数
 * 输入一个列表和函数 f
 * 输出对列表中的每个元素进行f函数调用后的列表
 
-[.fragment]
 image::Mapping-steps-loillibe-new.gif[100%,80%]
 
 === Filter高阶函数
@@ -541,7 +479,6 @@ image::Mapping-steps-loillibe-new.gif[100%,80%]
 * 输入一个列表和谓词函数P
 * 对列表中的每个元素进行过滤操作，输出只保留谓词函数为真的元素的列表
 
-[.fragment]
 image::Filter-steps-loillierbe.gif[100%,80%]
 
 [.columns]
@@ -554,25 +491,17 @@ image::Filter-steps-loillierbe.gif[100%,80%]
 
 [.column.is-one-third]
 --
-[.fragment]
 image::fold.jpg[]
 --
 
 [.column]
 --
-[.fragment]
 image::fold2.jpg[]
 --
 
 === Map/Filter/Fold
-[.fragment]
-map([🐂, 🥔, 🐔, 🌽], 烹饪) [.fragment]#=> [🍔, 🍟, 🍗, 🍿]#
 
-[.fragment]
-filter([🍔, 🍟, 🍗, 🍿], 素食) [.fragment]#=> [🍟, 🍿]#
 
-[.fragment]
-fold([🍔, 🍟, 🍗, 🍿], 🍺, 吃) [.fragment]#=> 💩#
 
 
 == 高阶函数
@@ -587,7 +516,6 @@ MapReduce
 --
 
 === 消除for循环（Sobol Sequence）
-[.fragment]
 [source,fortran]
 ----
 SUBROUTINE example ( D, N, M, dirVs, ret )
@@ -611,7 +539,6 @@ SUBROUTINE example ( D, N, M, dirVs, ret )
 ENDDO END
 ----
 
-[.fragment]
 [source,haskell,subs="none"]
 ----
 example n m dirVs = --  d×m n×d
@@ -638,12 +565,10 @@ template<typename IN, template <typename> class F>
 using Map_t = typename Map<IN, F>::type;
 ----
 
-[.fragment]
 <1> 输入类型参数 IN 和 元函数 F
 <2> 声明一个元函数Map
 <3> 模式匹配当IN类型为TypeList时，对其每个 `Ts...` 元素进行元函数调用
 
-[.fragment]
 NOTE: 1. `template <typename> class F` 为元函数声明，表示该函数输入一个类型参数 +
 2. `typename F<Ts>::type` 表示对元函数 F 调用，输入一个类型参数 `Ts`，返回调用后的类型参数 `::type` +
 3. `typename F<Ts>::type...` 展开后结果为 `typename F<T1>::type, typename F<T2>::type, typename F<T3>::type, ...`
@@ -664,12 +589,10 @@ template<typename IN, template <typename> class P>
 using Filter_t = typename Filter<IN, P>::type;
 ----
 
-[.fragment]
 <1> 输入类型参数 IN 和 谓词函数 P
 <2> 默认返回类型为空 TypeList; 列表为空时递归终止返回当前 OUT TypeList
 <3> 对当前列表第一个参数 H 进行 P 函数调用，根据真假判断要不要把结果放到 OUT TypeList
 
-[.fragment]
 NOTE: 1. Filter实现采用了尾递归方式，可能有助于编译器提高编译速度 +
 2. 使用继承方式省去了写 `using type = ...` 的代码 +
 3. `P<H>::value` 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 `::value` +
@@ -690,12 +613,10 @@ struct Fold<TypeList<H, Ts...>, ACC, OP>:
     Fold<TypeList<Ts...>, typename OP<ACC, H>::type, OP> {}; // <3>
 ----
 
-[.fragment]
 <1> 输入类型参数 IN，初始类型参数 INIT, 二元函数 OP
 <2> 默认返回初值；列表为空时递归终止返回当前 INIT 参数
 <3> 对当前参数 H 执行二元函数 OP, 其返回类型更新 INIT 参数
 
-[.fragment]
 NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `typename` 说明该函数输入两个类型参数 +
 2. `typename OP<ACC, H>::type` 表示对元函数 OP 调用，输入两个类型参数 ACC, H ，返回调用后的类型参数 `::type`
 
@@ -711,7 +632,6 @@ NOTE: 1. `template <typename, typename> class OP` 为元函数声明，两个 `t
 == Concat
 连接两个TypeList
 
-[.fragment]
 [source,cpp]
 ----
 template<typename IN, typename IN2>    // <1>
@@ -726,17 +646,14 @@ template<typename IN, typename IN2>
 using Concat_t = typename Concat<IN, IN2>::type;
 ----
 
-[.fragment]
 <1> 输入两个TypeList: IN, IN2
 <2> 定义 Append 二元操作输入两个参数，一个 ACC TypeList，一个类型参数 E，通过调用TypeList的 `append` 元函数
 <3> [.blue]#Fold# 高阶函数调用，输入 IN2，初值IN，二元操作 Append，对IN2 TypeList的每个元素进行 Append 调用
 
 
-[.fragment]
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 Concat_t<TypeList<int, char>, TypeList<float>> // TypeList<int, char, float>
@@ -746,7 +663,6 @@ Concat_t<TypeList<int, char>, TypeList<float>> // TypeList<int, char, float>
 icon:question[role="orange"]
 有没有其他解法
 
-[.fragment]
 [source,cpp]
 ----
 template<typename IN, typename IN2>
@@ -761,7 +677,6 @@ template<typename IN, typename IN2>
 using Concat_t = typename Concat<IN, IN2>::type;
 ----
 
-[.fragment]
 <1> 模式匹配两个TypeList，得到各自模板参数包 Ts, Ts2
 <2> 结果为两个TypeList的参数包都展开后放到一起
 
@@ -769,7 +684,6 @@ using Concat_t = typename Concat<IN, IN2>::type;
 icon:question[role="orange"]
 还有没有其他解法
 
-[.fragment]
 [source,cpp]
 ----
 template<typename IN, typename IN2>
@@ -779,16 +693,13 @@ template<typename IN, typename IN2>
 using Concat_t = typename Concat<IN, IN2>::type;
 ----
 
-[.fragment]
 <1> 使用参数转发函数exportTo，将IN2的参数转发到IN的append函数上去
 
-[.fragment]
 NOTE: 1. 这里将exportTo当做高阶函数使用，其输入一个函数 IN::append，将自身的参数转调到这个函数上 +
 2. 由于IN是模板类型参数，append 又是模板元函数，需要写成 `IN::template append`
 
 == Elem
 判断类型是否在TypeList中
-[.fragment]
 [source,cpp]
 ----
 template<typename IN, typename E> // <1>
@@ -804,17 +715,14 @@ public:
 template<typename IN, typename E>
 constexpr bool Elem_v = Elem<IN, E>::value;
 ----
-[.fragment]
 <1> 输入两个类型参数：IN TypeList, 待查找类型E
 <2> 定义二元操作FindE，若ACC为真则说明已经找到过，直接返回；否则判断当前类型参数是否与E相等
 <3> [.blue]#Fold# 操作，输入IN TypeList，初值类型为false_type，二元操作FindE
 <4> 从布尔类型得到其值
 
-[.fragment]
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 Elem_v<TypeList<int>, int>; // true
@@ -824,7 +732,6 @@ Elem_v<TypeList<int>, float>; // false
 === Elem 2
 icon:question[role="orange"]
 还有没有其他解法
-[.fragment]
 [source,cpp]
 ----
 template<typename IN, typename E>
@@ -841,17 +748,14 @@ template<typename IN, typename E>
 constexpr bool Elem_v = Elem<IN, E>::value;
 ----
 
-[.fragment]
 <1> 默认认为E不存在于IN中
 <2> 模式匹配，若IN类型为TypeList，则其一个个类型与E匹配
 
-[.fragment]
 TIP: 得益于C++17的折叠表达式([.blue]#fold# expression)： `(pack op ... )`，使这种方式可行
 
 == Unique
 对TypeList去重操作
 
-[.fragment]
 [source,cpp]
 ----
 template<typename IN> // <1>
@@ -867,20 +771,17 @@ template<typename IN>
 using Unique_t = typename Unique<IN>::type;
 ----
 
-[.fragment]
 <1> 输入待去重的IN TypeList
 <2> 定义二元操作Append，输入ACC TypeList和待插入类型参数E
 <3> 当前仅当E不存在于ACC中插入列表
 <4> [.blue]#Fold# 高阶函数调用，输入待去重的IN TypeList，初值空表，二元操作 Append，对IN TypeList的每个元素进行 Append 调用
 
 == QuickSort
-[%step]
 * 选取表中Pivot元素，以Pivot为划分点 [.fragment.blue]#Filter操作#
 ** 小于Pivot的所有元素放到左边形成新表
 ** 大于等于Pivot的所有元素放到右边形成新表
 * 对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 [.fragment.blue]#Fold操作#
 
-[%step]
 . {[.fragment.highlight-current-blue]*40*, 80, 30, 90, 10, 70, 50}
 . {{[.fragment.highlight-current-blue]*30*, 10}, 40, {80, 90, 70, 50}}
 . {{{10}, 30}, 40, {[.fragment.highlight-current-blue]*80*, 90, 70, 50}}
@@ -889,7 +790,6 @@ using Unique_t = typename Unique<IN>::type;
 . {10, 30, 40, 50, 70, 80, 90}
 
 === QuickSort
-[.fragment]
 [source,cpp]
 ----
 template<typename IN, template<typename, typename> class CMP> // <1>
@@ -911,7 +811,6 @@ public:
     using type = Concat_t<typename SmallerSorted::template append<PIVOT>, BiggerSorted>; // <5>
 };
 ----
-[.fragment]
 <1> 输入一个IN TypeList，比较元函数CMP
 <2> 默认返回空列表
 <3> 定义两个元函数LT/GT，用于得到和PIVIOT比较结果
@@ -922,7 +821,6 @@ public:
 icon:question[role="orange"]
 如何调用
 
-[.fragment]
 [source,cpp]
 ----
 template<typename LHS, typename RHS> // <1>
@@ -935,13 +833,11 @@ QuickSort_t<
     SizeCmp> // TypeList<char, char, float, int, double>>
 ----
 
-[.fragment]
 <1> 定义比较函数，输入两个类型，根据类型大小排序
 
 == 全局最短路径
 image::find_shortest_path.png[]
 
-[%step]
 - 存在环：A->B->A
 - A->D最短路径其实是A->C->D
 - D->E不可达
@@ -949,7 +845,6 @@ image::find_shortest_path.png[]
 === 伪代码
 任意给定两个点，采用深度优先搜索，伪代码如下
 
-[.fragment]
 [source,python]
 ----
 def find_shortest_path(from, to, path = []):         // <1>
@@ -960,7 +855,6 @@ def find_shortest_path(from, to, path = []):         // <1>
         path = min(path, cur_path)                   // <6>
     return path
 ----
-[.fragment]
 <1> 输入起点from, 终点to
 <2> 若找到目的地to，返回当前路径
 <3> 若当前点存在当前路径中，则遇到了环，返回空路径
@@ -971,7 +865,6 @@ def find_shortest_path(from, to, path = []):         // <1>
 
 === 用户界面
 
-[.fragment]
 [source,cpp]
 ----
 template<char ID>
@@ -993,13 +886,11 @@ auto path = g::getPath(argv[1][0], argv[2][0]); // runtime test      // <2>
 std::cout << " path size: " << path.sz << std::endl;
 ----
 
-[.fragment]
 <1> 用户构造边集，返回Graph对象
 <2> Graph对象生成的getPath接口既能用于编译时，也能运行时
 
 === 构造边集
 
-[.fragment]
 [source,cpp]
 ----
 using g = Graph< // <1>
@@ -1011,7 +902,6 @@ using g = Graph< // <1>
 
 icon:angle-double-down[role="icon-center fragment"]
 
-[.fragment]
 [source,cpp]
 ----
 using g = Graph<
@@ -1021,16 +911,13 @@ using g = Graph<
     auto(*)(A) -> auto(*)(E) -> void>;
 ----
 
-[.fragment]
 TIP: `auto(*)(A) -> B` 声明一个函数指针类型，为 [.blue]#后置返回类型# 写法，通过在前面声明 `auto` ，这样返回类型就可以通过箭头->写到后面
 
-[.fragment]
 NOTE: 1. 为了更好描述图，正好用上 [.blue]#后置返回类型# 中的箭头符号 +
 2. 由于函数可以返回一个函数，所以可以串起来，达到链 `auto(\*)(A) -> auto(*)(B) -> auto(\*)\(C) -> auto(*)(D) -> void` 效果 +
 3. 约定链条最后用 `void` 表示结束
 
 === 边结构
-[.fragment]
 [source,cpp]
 ----
 template<typename F, typename T>
@@ -1040,10 +927,8 @@ struct Edge {
 };
 ----
 
-[.fragment]
 基础操作
 
-[.fragment]
 [source,cpp]
 ----
 template<typename Node = void>
@@ -1059,11 +944,9 @@ struct EdgeTrait {
 };
 ----
 
-[.fragment]
 <1> 输入一个节点Node，一条边Edge，输出该节点是否为Edge的源From、目的点To
 <2> 输入一条边Edge，输出它的源From、目的点To
 
-[.fragment]
 TIP: 约定用 Trait 后缀表明为一组类型的属性、动作
 
 === 解构链Chain
@@ -1072,10 +955,8 @@ icon:question[role="orange"]
 icon:angle-double-down[role="icon-center"]
 Edge边表 `TypeList<Edge<A, B>, Edge<B, C>, Edge<C, D>>`
 
-[.fragment]
 定义一个解构函数Chain，输入链，输出Edge表
 
-[.fragment]
 [source,cpp]
 ----
 template<typename T, typename OUT = TypeList<>>
@@ -1098,13 +979,11 @@ public:
 };
 ----
 
-[.fragment]
 <1> 递归边界情况，当遇到链尾 `void` ，返回当前边表
 <2> 常规情况，不断构造Edge边，存到边表OUT TypeList中
 
 === 获得边集
 
-[.fragment]
 [source,cpp]
 ----
 template<typename... Chains> // <1>
@@ -1117,13 +996,11 @@ class Graph {
 };
 ----
 
-[.fragment]
 <1> 用户输入链条集
 <2> Chain元函数解构每一条链条得到边表的集合，通过 [.blue]#Fold# 操作展开得到边集
 
 === 两点间最短路径
 元函数PathFinder声明如下
-[.fragment]
 [source,cpp]
 ----
 // def find_shortest_path(from, to, path = []):
@@ -1132,15 +1009,12 @@ template<typename FROM, typename TARGET,         // <1>
 struct PathFinder;
 ----
 
-[.fragment]
 <1> 输入两个点FROM，TARGET，输出他们之间最短路径
 <2> PATH路径用于判断是否遇到了环；第四个参数用于模式匹配中的条件判断
 
-[.fragment]
 NOTE: 有时候 `typename Cond = void` 对类型参数名 `Cond` 不关注时，可以写成 `typename = void`
 
 === 两点间最短路径
-[.fragment]
 [source,cpp]
 ----
 // if from == to: return path # reach target
@@ -1149,11 +1023,9 @@ struct PathFinder<TARGET, TARGET, PATH>: // <1>
     PATH::template append<TARGET> { };   // <2>
 ----
 
-[.fragment]
 <1> 模式匹配，当FROM == TARGET时，到达终点
 <2> 返回最短路径
 
-[.fragment]
 [source,cpp]
 ----
 // if from in path: return []   # find cycle
@@ -1163,12 +1035,10 @@ struct PathFinder<CURR_NODE, TARGET, PATH,
     TypeList<> {}; // return empty path // <2>
 ----
 
-[.fragment]
 <1> 模式匹配，当CURR_NODE出现在当前路径中，说明遇到了环
 <2> 返回空路径
 
 === 两点间最短路径
-[.fragment]
 [source,cpp]
 ----
 template<typename CURR_NODE, typename TARGET, typename PATH>
@@ -1192,7 +1062,6 @@ public:
 };
 ----
 
-[.fragment]
 <1> 模式匹配，当前仅当当前CURR_NODE节点不是终点TARGET，并且不是环时
 <2> [.blue]#Filter# 操作，从边集Edges找出邻接CURR_NODE边
 <3> [.blue]#Map# 操作，对边表每一条边进行GetTo操作，获取CURR_NODE邻接点表
@@ -1203,15 +1072,12 @@ public:
 icon:question[role="orange"]
 运行时如何求最短路径
 
-[%step]
 - 编译期生成所有节点间的最短路径
 - 提供接口供运行时查表，输入起点、终点，查出最短路径
 
-[.fragment]
 icon:question[role="orange"]
 如何得到所有节点间的组合
 
-[.fragment]
 对边集的起点表和邻接点表做笛卡尔积！
 
 [.fragment.icon-center]#{A->B, B->C}#
@@ -1223,7 +1089,6 @@ icon:angle-double-down[role="icon-center fragment"]
 === 笛卡尔积
 输入两个列表，对两个列表中的元素两两组合得到序对表
 
-[.fragment]
 [source,cpp]
 ----
 template<typename A, typename B,
@@ -1246,14 +1111,12 @@ public:
 };
 ----
 
-[.fragment]
 <1> 外层循环，得到类型参数TA
 <2> 内层循环，得到类型参数TB，两两组合成序对PAIR<TA, TB>，放到RESULT表中
 
 === 路径存储
 枚举出所有节点间的组合情况
 
-[.fragment]
 [source,cpp]
 ----
 using AllPairs = CrossProduct_t<
@@ -1262,9 +1125,7 @@ using AllPairs = CrossProduct_t<
     std::pair>;
 ----
 
-[.fragment]
 路径数据结构
-[.fragment]
 [source,cpp]
 ----
 template<typename NODE_TYPE>
@@ -1285,13 +1146,11 @@ public:
 };
 ----
 
-[.fragment]
 <1> PathStorage<A, B, C>::path 存储 A->C 之间最短路径
 
 === 最短路径表
 我们期望编译期生成如下表，供运行时查询
 
-[.fragment]
 [%autowidth, frame=none]
 |===
 |FROM|DST|MinPath
@@ -1302,13 +1161,11 @@ public:
 |A|E|PathStorage<A, E>::path
 |===
 
-[.fragment]
 表项数据结构：PATH_PAIR: `std::pair<PAIR, PATH>` => `std::pair<std::pair<FROM, DST>, PATH>`
 
 === 生成路径
 输入两节点序对PAIR，输出PATH_PAIR，[.blue]#Map# 操作
 
-[.fragment]
 [source,cpp]
 ----
 template<typename PAIR>
@@ -1321,10 +1178,8 @@ struct GetPath {
 using AllPaths = Map_t<AllPairs, GetPath>;
 ----
 
-[.fragment]
 删除空路径项，[.blue]#Filter# 操作
 
-[.fragment]
 [source,cpp]
 ----
 template<typename PATH_PAIR>
@@ -1338,7 +1193,6 @@ using AllNonEmptyPaths = Filter_t<AllPaths, IsNonEmptyPath>;
 === 生成数据表项
 [.blue]#Map# 操作
 
-[.fragment]
 [source,cpp]
 ----
 template<typename PATH_PAIR>
@@ -1350,12 +1204,10 @@ struct SavePath {
 using SavedPaths = Map_t<AllNonEmptyPaths, SavePath>; // <2>
 ----
 
-[.fragment]
 <1> 路径数据转发至 PathStorage 类，触发存储
 <2> SavedPath即最短路径表
 
 === 生成编译时、运行时接口
-[.fragment]
 [source,cpp]
 ----
 template<typename NODE_TYPE, typename FROM, typename TARGET, typename PATH>
@@ -1375,7 +1227,6 @@ constexpr static void matchPath(NODE_TYPE from, NODE_TYPE to,
 }
 ----
 
-[.fragment]
 [source,cpp]
 ----
 // export compile/run-time interface
@@ -1387,7 +1238,6 @@ constexpr static Path<NODE_TYPE> getPath(NODE_TYPE from, NODE_TYPE to) { // <3>
 }
 ----
 
-[.fragment]
 <1> 当FROM/TARGET与表项匹配时，返回路径 result
 <2> 遍历查表动作，直到找到路径为止
 <3> 供运行时使用
@@ -1476,7 +1326,6 @@ auto tasks = taskbuild(
 [.column]
 --
 模板元编程
-[%step]
 * 1986 C++引入模板
 * C++98 模板实例化
 * C++11 模板类别名、可变模板参数、static_assert、decltype、type_traits
@@ -1488,7 +1337,6 @@ auto tasks = taskbuild(
 [.column]
 --
 constexpr
-[%step]
 * C++11 引入constexpr简单函数
 * C++14 放开constexpr约束, 模板变量
 * C++17 if constexpr、constexpr lambda
@@ -1497,7 +1345,6 @@ constexpr
 --
 
 == 结论
-[%step]
 - 库、框架开发者必备技能
 - 更高级别抽象层次，实现零成本抽象
 - 设计灵活组合、类型安全、容易使用的接口
