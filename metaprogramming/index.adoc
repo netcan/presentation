@@ -1,6 +1,6 @@
 = Modern C++模板元编程
 :customcss: ../presentation.css
-:revealjsdir: ../node_modules/reveal.js
+:revealjsdir: https://cdn.jsdelivr.net/npm/reveal.js@3.9.2
 :revealjs_plugins: ../presentation_plugins.js
 :revealjs_plugins_configuration: ../presentation_plugins_conf.js
 :revealjs_theme: serif
