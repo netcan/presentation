@@ -551,7 +551,7 @@ example n m dirVs = --  d×m n×d
 ----
 
 === Map实现
-[source.fragment, cpp]
+[source, cpp]
 ----
 template<typename IN, template <typename> class F> // <1>
 struct Map; // <2>
@@ -574,7 +574,7 @@ NOTE: 1. `template <typename> class F` 为元函数声明，表示该函数输�
 3. `typename F<Ts>::type...` 展开后结果为 `typename F<T1>::type, typename F<T2>::type, typename F<T3>::type, ...`
 
 === Filter实现
-[source.column.fragment,cpp]
+[source.column,cpp]
 ----
 template<typename IN, template <typename> class P, typename OUT = TypeList<>> // <1>
 struct Filter { using type = OUT; }; // <2>
@@ -599,7 +599,7 @@ NOTE: 1. Filter实现采用了尾递归方式，可能有助于编译器提高�
 4. 对 OUT TypeList进行append参数 H，因为 `append` 也是个模板元函数，内嵌于类TypeList中，需要写成 `typename OUT::template append<H>` ，可以看成是 `out.append(h)` 形式
 
 === Fold实现
-[source.column.fragment,cpp]
+[source.column,cpp]
 ----
 template<typename IN, typename INIT, template<typename, typename> class OP> // <1>
 struct Fold { using type = INIT; }; <2>
@@ -777,15 +777,15 @@ using Unique_t = typename Unique<IN>::type;
 <4> [.blue]#Fold# 高阶函数调用，输入待去重的IN TypeList，初值空表，二元操作 Append，对IN TypeList的每个元素进行 Append 调用
 
 == QuickSort
-* 选取表中Pivot元素，以Pivot为划分点 [.fragment.blue]#Filter操作#
+* 选取表中Pivot元素，以Pivot为划分点 [.blue]#Filter操作#
 ** 小于Pivot的所有元素放到左边形成新表
 ** 大于等于Pivot的所有元素放到右边形成新表
-* 对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 [.fragment.blue]#Fold操作#
+* 对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 [.blue]#Fold操作#
 
-. {[.fragment.highlight-current-blue]*40*, 80, 30, 90, 10, 70, 50}
-. {{[.fragment.highlight-current-blue]*30*, 10}, 40, {80, 90, 70, 50}}
-. {{{10}, 30}, 40, {[.fragment.highlight-current-blue]*80*, 90, 70, 50}}
-. {{{10}, 30}, 40, {{[.fragment.highlight-current-blue]*70*, 50}, 80, {90}}}
+. {[.highlight-current-blue]*40*, 80, 30, 90, 10, 70, 50}
+. {{[.highlight-current-blue]*30*, 10}, 40, {80, 90, 70, 50}}
+. {{{10}, 30}, 40, {[.highlight-current-blue]*80*, 90, 70, 50}}
+. {{{10}, 30}, 40, {{[.highlight-current-blue]*70*, 50}, 80, {90}}}
 . {{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}
 . {10, 30, 40, 50, 70, 80, 90}
 
@@ -858,10 +858,10 @@ def find_shortest_path(from, to, path = []):         // <1>
 <1> 输入起点from, 终点to
 <2> 若找到目的地to，返回当前路径
 <3> 若当前点存在当前路径中，则遇到了环，返回空路径
-<4> 从边集edges找到当前点from的邻接边表 [.fragment.blue]#Filter操作# +
-    从邻接边表得到邻接点表v [.fragment.blue]#Map操作#
+<4> 从边集edges找到当前点from的邻接边表 [.blue]#Filter操作# +
+    从邻接边表得到邻接点表v [.blue]#Map操作#
 <5> 更新当前路径curr_path
-<6> 求出最短非空路径 [.fragment.blue]#Fold操作#
+<6> 求出最短非空路径 [.blue]#Fold操作#
 
 === 用户界面
 
@@ -900,7 +900,7 @@ using g = Graph< // <1>
     link(node(A) -> node(E))>; // test D -> E unreachable
 ----
 
-icon:angle-double-down[role="icon-center fragment"]
+icon:angle-double-down[role="icon-center"]
 
 [source,cpp]
 ----
@@ -1080,11 +1080,11 @@ icon:question[role="orange"]
 
 对边集的起点表和邻接点表做笛卡尔积！
 
-[.fragment.icon-center]#{A->B, B->C}#
-icon:angle-double-down[role="icon-center fragment"]
-[.fragment.icon-center]#{A, B} x {B, C}#
-icon:angle-double-down[role="icon-center fragment"]
-[.fragment.icon-center]#{(A, B), (A, C), (B, B), (B, C)}#
+[.icon-center]#{A->B, B->C}#
+icon:angle-double-down[role="icon-center"]
+[.icon-center]#{A, B} x {B, C}#
+icon:angle-double-down[role="icon-center"]
+[.icon-center]#{(A, B), (A, C), (B, B), (B, C)}#
 
 === 笛卡尔积
 输入两个列表，对两个列表中的元素两两组合得到序对表

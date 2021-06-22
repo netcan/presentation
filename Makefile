@@ -8,5 +8,4 @@ clean: $(HTML_TARGET)
 	rm -rf $(HTML_TARGET)
 
 %.html: %.adoc $(COMMON_ADOC)
-	echo $^
 	cd $(dir $<) && npx asciidoctor-revealjs index.adoc

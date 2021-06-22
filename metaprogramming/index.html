@@ -599,7 +599,7 @@ ENDDO END</code></pre></div></div>
                   in <mark>map</mark> xorV dirVs)
             ret = <mark>map</mark> lbody [1..n]
             e   = replicate (length dirVs) 0
-    in tail (<mark>scan</mark> (zipWith xor) e ret)</code></pre></div></div></div></section><section id="_map实现"><h2>Map实现</h2><div class="slide-content"><div class="listingblock fragment"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, template &lt;typename&gt; class F&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    in tail (<mark>scan</mark> (zipWith xor) e ret)</code></pre></div></div></div></section><section id="_map实现"><h2>Map实现</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, template &lt;typename&gt; class F&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Map; <i class="conum" data-value="2"></i><b>(2)</b>
 
 template&lt;template &lt;typename&gt; class F, typename ...Ts&gt;
@@ -612,7 +612,7 @@ using Map_t = typename Map&lt;IN, F&gt;::type;</code></pre></div></div>
 <div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入类型参数 IN 和 元函数 F</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>声明一个元函数Map</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>模式匹配当IN类型为TypeList时，对其每个 <code>Ts&#8230;&#8203;</code> 元素进行元函数调用</td></tr></table></div>
 <div class="admonitionblock note"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. <code>template &lt;typename&gt; class F</code> 为元函数声明，表示该函数输入一个类型参数<br>
 2. <code>typename F&lt;Ts&gt;::type</code> 表示对元函数 F 调用，输入一个类型参数 <code>Ts</code>，返回调用后的类型参数 <code>::type</code><br>
-3. <code>typename F&lt;Ts&gt;::type&#8230;&#8203;</code> 展开后结果为 <code>typename F&lt;T1&gt;::type, typename F&lt;T2&gt;::type, typename F&lt;T3&gt;::type, &#8230;&#8203;</code></td></tr></table></div></div></section><section id="_filter实现"><h2>Filter实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, template &lt;typename&gt; class P, typename OUT = TypeList&lt;&gt;&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+3. <code>typename F&lt;Ts&gt;::type&#8230;&#8203;</code> 展开后结果为 <code>typename F&lt;T1&gt;::type, typename F&lt;T2&gt;::type, typename F&lt;T3&gt;::type, &#8230;&#8203;</code></td></tr></table></div></div></section><section id="_filter实现"><h2>Filter实现</h2><div class="slide-content"><div class="listingblock column"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, template &lt;typename&gt; class P, typename OUT = TypeList&lt;&gt;&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Filter { using type = OUT; }; <i class="conum" data-value="2"></i><b>(2)</b>
 
 template&lt;template &lt;typename&gt; class P, typename OUT, typename H, typename ...Ts&gt;
@@ -627,7 +627,7 @@ using Filter_t = typename Filter&lt;IN, P&gt;::type;</code></pre></div></div>
 <div class="admonitionblock note"><table><tr><td class="icon"><i class="fa fa-info-circle" title="Note"></i></td><td class="content">1. Filter实现采用了尾递归方式，可能有助于编译器提高编译速度<br>
 2. 使用继承方式省去了写 <code>using type = &#8230;&#8203;</code> 的代码<br>
 3. <code>P&lt;H&gt;::value</code> 表示对元函数P的调用，输入一个类型参数 H，输出其布尔值 <code>::value</code><br>
-4. 对 OUT TypeList进行append参数 H，因为 <code>append</code> 也是个模板元函数，内嵌于类TypeList中，需要写成 <code>typename OUT::template append&lt;H&gt;</code> ，可以看成是 <code>out.append(h)</code> 形式</td></tr></table></div></div></section><section id="_fold实现"><h2>Fold实现</h2><div class="slide-content"><div class="listingblock column fragment"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+4. 对 OUT TypeList进行append参数 H，因为 <code>append</code> 也是个模板元函数，内嵌于类TypeList中，需要写成 <code>typename OUT::template append&lt;H&gt;</code> ，可以看成是 <code>out.append(h)</code> 形式</td></tr></table></div></div></section><section id="_fold实现"><h2>Fold实现</h2><div class="slide-content"><div class="listingblock column"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct Fold { using type = INIT; }; <i class="conum" data-value="2"></i><b>(2)</b>
 
 template&lt;typename IN, typename INIT, template&lt;typename, typename&gt; class OP&gt;
@@ -715,7 +715,7 @@ public:
 template&lt;typename IN&gt;
 using Unique_t = typename Unique&lt;IN&gt;::type;</code></pre></div></div>
 <div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入待去重的IN TypeList</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>定义二元操作Append，输入ACC TypeList和待插入类型参数E</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>当前仅当E不存在于ACC中插入列表</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td><span class="blue">Fold</span> 高阶函数调用，输入待去重的IN TypeList，初值空表，二元操作 Append，对IN TypeList的每个元素进行 Append 调用</td></tr></table></div></div></section>
-<section><section id="_quicksort"><h2>QuickSort</h2><div class="slide-content"><div class="ulist"><ul><li><p>选取表中Pivot元素，以Pivot为划分点 <span class="fragment blue">Filter操作</span></p><div class="ulist"><ul><li><p>小于Pivot的所有元素放到左边形成新表</p></li><li><p>大于等于Pivot的所有元素放到右边形成新表</p></li></ul></div></li><li><p>对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 <span class="fragment blue">Fold操作</span></p><div class="olist arabic"><ol class="arabic"><li><p>{<strong class="fragment highlight-current-blue">40</strong>, 80, 30, 90, 10, 70, 50}</p></li><li><p>{{<strong class="fragment highlight-current-blue">30</strong>, 10}, 40, {80, 90, 70, 50}}</p></li><li><p>{{{10}, 30}, 40, {<strong class="fragment highlight-current-blue">80</strong>, 90, 70, 50}}</p></li><li><p>{{{10}, 30}, 40, {{<strong class="fragment highlight-current-blue">70</strong>, 50}, 80, {90}}}</p></li><li><p>{{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}</p></li><li><p>{10, 30, 40, 50, 70, 80, 90}</p></li></ol></div></li></ul></div></div></section><section id="_quicksort_2"><h2>QuickSort</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+<section><section id="_quicksort"><h2>QuickSort</h2><div class="slide-content"><div class="ulist"><ul><li><p>选取表中Pivot元素，以Pivot为划分点 <span class="blue">Filter操作</span></p><div class="ulist"><ul><li><p>小于Pivot的所有元素放到左边形成新表</p></li><li><p>大于等于Pivot的所有元素放到右边形成新表</p></li></ul></div></li><li><p>对左右两个表进行递归QuickSort操作后，连接成表得到最终有序表 <span class="blue">Fold操作</span></p><div class="olist arabic"><ol class="arabic"><li><p>{<strong class="highlight-current-blue">40</strong>, 80, 30, 90, 10, 70, 50}</p></li><li><p>{{<strong class="highlight-current-blue">30</strong>, 10}, 40, {80, 90, 70, 50}}</p></li><li><p>{{{10}, 30}, 40, {<strong class="highlight-current-blue">80</strong>, 90, 70, 50}}</p></li><li><p>{{{10}, 30}, 40, {{<strong class="highlight-current-blue">70</strong>, 50}, 80, {90}}}</p></li><li><p>{{{10}, 30}, 40, {{{50}, 70}, 80, {90}}}</p></li><li><p>{10, 30, 40, 50, 70, 80, 90}</p></li></ol></div></li></ul></div></div></section><section id="_quicksort_2"><h2>QuickSort</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt; <i class="conum" data-value="1"></i><b>(1)</b>
 struct QuickSort { using type = TypeList&lt;&gt;; };                <i class="conum" data-value="2"></i><b>(2)</b>
 template&lt;typename IN, template&lt;typename, typename&gt; class CMP&gt;
 using QuickSort_t = typename QuickSort&lt;IN, CMP&gt;::type;
@@ -752,8 +752,8 @@ QuickSort_t&lt;
         cur_path = from + find_shortest_path(v, to)  <i class="conum" data-value="5"></i><b>(5)</b>
         path = min(path, cur_path)                   <i class="conum" data-value="6"></i><b>(6)</b>
     return path</code></pre></div></div>
-<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入起点from, 终点to</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>若找到目的地to，返回当前路径</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>若当前点存在当前路径中，则遇到了环，返回空路径</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>从边集edges找到当前点from的邻接边表 <span class="fragment blue">Filter操作</span><br>
-从邻接边表得到邻接点表v <span class="fragment blue">Map操作</span></td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>更新当前路径curr_path</td></tr><tr><td><i class="conum" data-value="6"></i><b>6</b></td><td>求出最短非空路径 <span class="fragment blue">Fold操作</span></td></tr></table></div></div></section><section id="_用户界面"><h2>用户界面</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;char ID&gt;
+<div class="colist arabic"><table><tr><td><i class="conum" data-value="1"></i><b>1</b></td><td>输入起点from, 终点to</td></tr><tr><td><i class="conum" data-value="2"></i><b>2</b></td><td>若找到目的地to，返回当前路径</td></tr><tr><td><i class="conum" data-value="3"></i><b>3</b></td><td>若当前点存在当前路径中，则遇到了环，返回空路径</td></tr><tr><td><i class="conum" data-value="4"></i><b>4</b></td><td>从边集edges找到当前点from的邻接边表 <span class="blue">Filter操作</span><br>
+从邻接边表得到邻接点表v <span class="blue">Map操作</span></td></tr><tr><td><i class="conum" data-value="5"></i><b>5</b></td><td>更新当前路径curr_path</td></tr><tr><td><i class="conum" data-value="6"></i><b>6</b></td><td>求出最短非空路径 <span class="blue">Fold操作</span></td></tr></table></div></div></section><section id="_用户界面"><h2>用户界面</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;char ID&gt;
 struct Node { constexpr static char id = ID; };
 using A = Node&lt;'A'&gt;;
 using B = Node&lt;'B'&gt;;
@@ -775,7 +775,7 @@ std::cout &lt;&lt; " path size: " &lt;&lt; path.sz &lt;&lt; std::endl;</code></p
     link(node(A) -&gt; node(C)),  // test shortest path: A -&gt; C -&gt; D
     link(node(B) -&gt; node(A)),  // test cycle
     link(node(A) -&gt; node(E))&gt;; // test D -&gt; E unreachable</code></pre></div></div>
-<div class="paragraph"><p><span class="icon icon-center fragment"><i class="fa fa-angle-double-down"></i></span></p></div>
+<div class="paragraph"><p><span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span></p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">using g = Graph&lt;
     auto(*)(A) -&gt; auto(*)(B) -&gt; auto(*)(C) -&gt; auto(*)(D) -&gt; void,
     auto(*)(A) -&gt; auto(*)(C) -&gt; void,
@@ -874,11 +874,11 @@ public:
 <div class="paragraph"><p><span class="icon orange"><i class="fa fa-question"></i></span>
 如何得到所有节点间的组合</p></div>
 <div class="paragraph"><p>对边集的起点表和邻接点表做笛卡尔积！</p></div>
-<div class="paragraph"><p><span class="fragment icon-center">{A&#8594;B, B&#8594;C}</span>
-<span class="icon icon-center fragment"><i class="fa fa-angle-double-down"></i></span>
-<span class="fragment icon-center">{A, B} x {B, C}</span>
-<span class="icon icon-center fragment"><i class="fa fa-angle-double-down"></i></span>
-<span class="fragment icon-center">{(A, B), (A, C), (B, B), (B, C)}</span></p></div></div></section><section id="_笛卡尔积"><h2>笛卡尔积</h2><div class="slide-content"><div class="paragraph"><p>输入两个列表，对两个列表中的元素两两组合得到序对表</p></div>
+<div class="paragraph"><p><span class="icon-center">{A&#8594;B, B&#8594;C}</span>
+<span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span>
+<span class="icon-center">{A, B} x {B, C}</span>
+<span class="icon icon-center"><i class="fa fa-angle-double-down"></i></span>
+<span class="icon-center">{(A, B), (A, C), (B, B), (B, C)}</span></p></div></div></section><section id="_笛卡尔积"><h2>笛卡尔积</h2><div class="slide-content"><div class="paragraph"><p>输入两个列表，对两个列表中的元素两两组合得到序对表</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename A, typename B,
     template&lt;typename, typename&gt; class PAIR&gt;
 struct CrossProduct;
