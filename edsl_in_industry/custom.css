@@ -1,0 +1,11 @@
+@import url('../presentation.css');
+
+.reveal h1 {
+  text-shadow: none;
+  font-size: 40pt;
+}
+
+.reveal h2 {
+  text-shadow: none;
+  font-size: 30pt;
+}
