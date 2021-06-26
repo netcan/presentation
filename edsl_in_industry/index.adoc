@@ -36,6 +36,8 @@ include::../common/self_introduction.adoc[]
 独立于宿主语言，需要构建单独的开发环境
 
 * HTML/CSS
+* XML
+* GL Shader
 * Makefile
 * Latex/AsciiDoctor/Markdown
 * SQL
@@ -216,6 +218,39 @@ constexpr auto AddPointer<T, 0> = T{};
 
 template<typename T, size_t N>
 using AddPointer_t = decltype(AddPointer<T, N>);
+----
+
+=== 元编程与函数式编程：类型计算
+C++如何实现一个给定维度的多维变长数组类型?
+https://www.zhihu.com/question/468039165
+
+[source,cpp]
+----
+template <typename T, std::size_t N> struct vector_n {
+    using type = std::vector<typename vector_n<T, N - 1>::type>;
+};
+
+template <typename T> struct vector_n<T, 1> {
+    using type = std::vector<T>;
+};
+
+auto vec = vector_n<int, 3>::type{} // std::vector<std::vector<std::vector<int>>>
+----
+
+[source,cpp]
+----
+template<typename T, size_t... Ns>
+auto vector_n = vector<T>{};
+
+template<typename T, size_t N>
+auto vector_n<T, N> = vector<T>(N);
+
+template<typename T, size_t N, size_t ...Ns>
+auto vector_n<T, N, Ns...>
+    = vector<decltype(vector_n<T, Ns...>)>
+    ( N, vector_n<T, Ns...>);
+
+auto vec = vector_n<int, 3, 4, 5>; // std::vector<std::vector<std::vector<int>>>
 ----
 
 === 元编程与函数式编程：列表数据结构
