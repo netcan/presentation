@@ -1,7 +1,8 @@
 == 自我介绍
 
 * 96年出生，18年毕业于合肥工业大学本科
-* 高级工程师
+* 某大厂高级工程师
+* 机工社 https://item.jd.com/10054930586115.html[《C++20高级编程》]作者
 * 知乎 https://www.zhihu.com/column/c_1289690410462785536[《魅力C++》] 专栏作者
 * 兴趣：CS, OO, FP, Design, Coding, Writing
 * Skills: C/C++/Rust, Haskell/Scheme, Bash/Python/Javascript/PHP
