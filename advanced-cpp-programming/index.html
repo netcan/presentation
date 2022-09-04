@@ -403,9 +403,9 @@ TeX: { equationNumbers: { autoNumber: "none" } }
 link.rel = 'stylesheet';
 link.type = 'text/css';
 link.href = window.location.search.match( /print-pdf/gi ) ? "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/css/print/pdf.css" : "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/css/print/paper.css";
-document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="../presentation.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>C++高级编程</h1><p class="author"><small>Netcan 2022-09-04 @Shanghai</small></p></section><section id="_自我介绍"><h2>自我介绍</h2><div class="slide-content"><div class="ulist"><ul><li><p>96年出生，18年毕业于合肥工业大学本科</p></li><li><p>某大厂高级工程师</p></li><li><p>机工社 <a href="https://item.jd.com/10054930586115.html">《C++20高级编程》</a>作者</p></li><li><p>知乎 <a href="https://www.zhihu.com/column/c_1289690410462785536">《魅力C++》</a> 专栏作者</p></li><li><p>兴趣：CS, OO, FP, Design, Coding, Writing</p></li><li><p>Skills: C/C++/Rust, Haskell/Scheme, Bash/Python/Javascript/PHP</p></li></ul></div></div></section>
+document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="../presentation.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>C++高级编程</h1><p class="author"><small>Netcan 2022-09-04 @Shanghai</small></p></section><section id="_自我介绍"><h2>自我介绍</h2><div class="slide-content"><div class="ulist"><ul><li><p>96年出生，18年毕业于合肥工业大学本科</p></li><li><p>某大厂高级工程师</p></li><li><p>机工社 <a href="https://item.jd.com/10054930586115.html">《C++20高级编程》</a>作者</p></li><li><p>知乎 <a href="https://www.zhihu.com/column/c_1289690410462785536">《魅力C++》</a> 专栏作者</p></li><li><p>兴趣：CS, OO, FP, Design, Coding, Writing</p></li><li><p>Skills: C/C++/Rust, Haskell/Scheme, Bash/Python</p></li></ul></div></div></section>
 <section id="_议程"><h2>议程</h2><div class="slide-content"><div class="ulist"><ul><li><p>C++的特点</p></li><li><p>C++特性的演进</p></li><li><p>C++20核心特性精讲</p><div class="ulist"><ul><li><p>概念约束</p></li><li><p>ranges标准库</p></li><li><p>无栈协程</p></li><li><p>模块</p></li></ul></div></li></ul></div></div></section>
-<section id="_c的特点"><h2>C++的特点</h2><div class="slide-content"><div class="ulist"><ul><li><p>易于上手、难于精通、资料丰富</p></li><li><p>贴近硬件、抽象手段丰富</p></li><li><p>表达力强、简洁，多范式编程</p></li><li><p>编译时计算能力：零开销抽象</p></li></ul></div></div></section>
+<section id="_c的特点"><h2>C++的特点</h2><div class="slide-content"><div class="ulist"><ul><li><p>易于上手、难于精通、资料丰富</p></li><li><p>贴近硬件、抽象手段丰富、零开销抽象</p></li><li><p>表达力强、简洁，多范式编程</p></li><li><p>编译时计算能力</p></li></ul></div></div></section>
 <section id="_c特性演进标准库容器"><h2>C++特性演进：标准库容器</h2><div class="slide-content"><div class="paragraph"><p>C++98:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">std::vector&lt;int&gt; v;
 v.push_back(1); v.push_back(2);
@@ -413,10 +413,7 @@ v.push_back(3); v.push_back(4);</code></pre></div></div>
 <div class="paragraph"><p>C++11初始化列表:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">std::vector&lt;int&gt; v { 1, 2, 3, 4 };</code></pre></div></div>
 <div class="paragraph"><p>C++17类模板参数推导:</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">std::vector v { 1, 2, 3, 4 };</code></pre></div></div>
-<div class="paragraph"><p>C++20 constexpr编译时计算：</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">constexpr std::set s { 1, 2, 3, 4 };
-if (s.contains(x)) { /* ... */ }</code></pre></div></div></div></section>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">std::vector v { 1, 2, 3, 4 };</code></pre></div></div></div></section>
 <section id="_c特性演进迭代循环与auto"><h2>C++特性演进：迭代循环与auto</h2><div class="slide-content"><div class="paragraph"><p>C++98:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">for (vector&lt;thread&gt;::iterator it = vec.begin(); it != vec.end(); ++it)
     it-&gt;join();
@@ -430,13 +427,13 @@ std::for_each(vec.begin(), vec.end(), mem_fun_ref(&amp;thread::join));</code></p
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">for(auto obj = GetObj(); auto&amp; item: obj.GetCollection()) /* ... */</code></pre></div></div></div></section>
 <section id="_c特性演进仿函数与lambda"><h2>C++特性演进：仿函数与lambda</h2><div class="slide-content"><div class="paragraph"><p>C++98:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">struct Finder { // 无趣的仿函数类
-  bool operator() (int x) { return x == p; }
-  int p;
+  bool operator() (int x) const { return e_ == x; }
+  int e_;
 };
 Finder finder = { x };
 vector&lt;int&gt;::iterator it = find_if(v.begin(), v.end(), finder);</code></pre></div></div>
 <div class="paragraph"><p>C++11:</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">auto it = find_if(v.begin(), v.end(), [x](int e) { return x == e; });</code></pre></div></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">auto it = find_if(v.begin(), v.end(), [e](int x) { return x == e; });</code></pre></div></div>
 <div class="paragraph"><p>C++20:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">auto f = []&lt;typename&gt;() {};</code></pre></div></div></div></section>
 <section id="_c特性演进移动语义右值"><h2>C++特性演进：移动语义（右值）</h2><div class="slide-content"><div class="paragraph"><p>C++98拷贝构造:</p></div>
@@ -444,7 +441,7 @@ vector&lt;int&gt;::iterator it = find_if(v.begin(), v.end(), finder);</code></pr
 Obj o = f(); // 拷贝构造（关闭RVO优化）</code></pre></div></div>
 <div class="paragraph"><p>C++11移动构造:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">Obj o = f(); // 移动构造（关闭RVO优化）</code></pre></div></div>
-<div class="paragraph"><p>C++17拷贝省略:</p></div>
+<div class="paragraph"><p>C++17拷贝消除:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">Obj o = f(); // 标准化：省略掉拷贝、移动动作</code></pre></div></div></div></section>
 <section id="_c特性演进移动语义左值"><h2>C++特性演进：移动语义（左值）</h2><div class="slide-content"><div class="paragraph"><p>C++98表达移动语义:</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">std::vector&lt;int&gt; v2;
@@ -462,13 +459,13 @@ v2.swap(v1);</code></pre></div></div>
 <div class="paragraph"><p>C++11 可变参数：</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">void print() { }
 
-template&lt;typename A, typename ...Args&gt;
+template&lt;typename A, typename... Args&gt;
 void print(const A&amp; arg, const Args&amp;... args) {
     std::cout &lt;&lt; arg &lt;&lt; std::endl;
     print(args...); // 递归与参数包展开
 }</code></pre></div></div>
 <div class="paragraph"><p>C++17 折叠表达式：</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename ...Args&gt;
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Args&gt;
 void print(const Args&amp;... args) {
     ((std::cout &lt;&lt; args &lt;&lt; std::endl), ...); // 逗号表达式、折叠表达式
 }</code></pre></div></div>
@@ -491,7 +488,7 @@ Addable auto add(E e1, E e2) {
 add(1, 2); // ok
 add(obj, obj); // condidate template ignored: constraints not satisfied [with E = Obj]
                // because 'Obj' does not satisfy 'Addable'</code></pre></div></div></div></section>
-<section id="_c20核心特性概念约束_2"><h2>C++20核心特性：概念约束</h2><div class="slide-content"><div class="paragraph"><p>Goncept定义</p></div>
+<section id="_c20核心特性概念约束_2"><h2>C++20核心特性：概念约束</h2><div class="slide-content"><div class="paragraph"><p>concept定义</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template &lt;被约束的模板参数列表&gt;
 concept 概念名 = 约束表达式;
 // concept合取
@@ -511,7 +508,7 @@ requires (T x) {
 <section id="_c20核心特性概念约束_3"><h2>C++20核心特性：概念约束</h2><div class="slide-content"><div class="ulist"><ul><li><p>基础特性、面向普通用户</p></li><li><p>强大的泛化、表达力</p></li><li><p>静态检查，相对于手写代码做到零成本开销</p></li><li><p>替代传统惯用法：<code>enable_if</code> 与标签分发技术</p></li></ul></div></div></section>
 <section id="_c20核心特性ranges标准库"><h2>C++20核心特性：ranges标准库</h2><div class="slide-content"><div class="paragraph"><p>对现有的标准库进行了补充，它以 <strong class="blue">函数式编程范式</strong> 进行编程，将计算任务由一系列 <strong class="blue">原子</strong> 操作灵活 <strong class="blue">组合</strong> 而成，使得代码的正确性更 <strong class="blue">容易推理</strong>。</p></div>
 <div class="paragraph"><p>Unix哲学：</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">$ find tex/ -type f -name "*.tex" | xargs wc -m \
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-none hljs" data-noescape="true">$ find tex/ -type f -name "*.tex" | xargs wc -m \
                                   | awk '{if ($1 &gt; 200) {print $0}}' \
                                   | sort -n
    228 tex/constexpr-metaprogramming.tex
@@ -555,9 +552,9 @@ int main() {
 <section id="_c20核心特性无栈协程_3"><h2>C++20核心特性：无栈协程</h2><div class="slide-content"><div class="ulist"><ul><li><p>轻量级</p></li><li><p>以同步的方式编写异步代码</p></li><li><p>容易扩展</p></li></ul></div></div></section>
 <section id="_c20核心特性模块"><h2>C++20核心特性：模块</h2><div class="slide-content"><div class="paragraph"><p>解决了传统上头文件编译模型的痛点：</p></div>
 <div class="ulist"><ul><li><p>依赖顺序导致头文件难以组合、重复地解析、符号覆盖等问题</p></li><li><p>语言层面为程序员提供了 <strong class="blue">模块化</strong> 的手段</p></li><li><p>编译性能大幅提升</p></li></ul></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">import std.core; // 导入标准库模块
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">import std.core; // 导入标准库模块，需要C++23
 int main() {
-  std::cout &lt;&lt; "Hello world" &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Hello world" &lt;&lt; std::endl;
 }</code></pre></div></div></div></section>
 <section id="_c20核心特性模块_2"><h2>C++20核心特性：模块</h2><div class="slide-content"><div class="paragraph"><p>模块接口文件</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">module; // 可选，全局模块片段

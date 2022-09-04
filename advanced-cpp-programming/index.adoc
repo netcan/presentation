@@ -29,9 +29,9 @@ include::../common/self_introduction.adoc[]
 
 == C++的特点
 * 易于上手、难于精通、资料丰富
-* 贴近硬件、抽象手段丰富
+* 贴近硬件、抽象手段丰富、零开销抽象
 * 表达力强、简洁，多范式编程
-* 编译时计算能力：零开销抽象
+* 编译时计算能力
 
 == C++特性演进：标准库容器
 C++98:
@@ -55,14 +55,6 @@ C++17类模板参数推导:
 [source,cpp]
 ----
 std::vector v { 1, 2, 3, 4 };
-----
-
-C++20 constexpr编译时计算：
-
-[source,cpp]
-----
-constexpr std::set s { 1, 2, 3, 4 };
-if (s.contains(x)) { /* ... */ }
 ----
 
 == C++特性演进：迭代循环与auto
@@ -99,8 +91,8 @@ C++98:
 [source,cpp]
 ----
 struct Finder { // 无趣的仿函数类
-  bool operator() (int x) { return x == p; }
-  int p;
+  bool operator() (int x) const { return e_ == x; }
+  int e_;
 };
 Finder finder = { x };
 vector<int>::iterator it = find_if(v.begin(), v.end(), finder);
@@ -109,7 +101,7 @@ vector<int>::iterator it = find_if(v.begin(), v.end(), finder);
 C++11:
 [source,cpp]
 ----
-auto it = find_if(v.begin(), v.end(), [x](int e) { return x == e; });
+auto it = find_if(v.begin(), v.end(), [e](int x) { return x == e; });
 ----
 
 C++20:
@@ -132,7 +124,7 @@ C++11移动构造:
 Obj o = f(); // 移动构造（关闭RVO优化）
 ----
 
-C++17拷贝省略:
+C++17拷贝消除:
 [source,cpp]
 ----
 Obj o = f(); // 标准化：省略掉拷贝、移动动作
@@ -177,7 +169,7 @@ C++11 可变参数：
 ----
 void print() { }
 
-template<typename A, typename ...Args>
+template<typename A, typename... Args>
 void print(const A& arg, const Args&... args) {
     std::cout << arg << std::endl;
     print(args...); // 递归与参数包展开
@@ -188,7 +180,7 @@ C++17 折叠表达式：
 
 [source,cpp]
 ----
-template<typename ...Args>
+template<typename... Args>
 void print(const Args&... args) {
     ((std::cout << args << std::endl), ...); // 逗号表达式、折叠表达式
 }
@@ -226,7 +218,7 @@ add(obj, obj); // condidate template ignored: constraints not satisfied [with E 
 
 
 == C++20核心特性：概念约束
-Goncept定义
+concept定义
 [source,cpp]
 ----
 template <被约束的模板参数列表>
@@ -261,7 +253,7 @@ requires (T x) {
 对现有的标准库进行了补充，它以 [.blue]*函数式编程范式* 进行编程，将计算任务由一系列 [.blue]*原子* 操作灵活 [.blue]*组合* 而成，使得代码的正确性更 [.blue]*容易推理*。
 
 Unix哲学：
-[source,cpp]
+[source]
 ----
 $ find tex/ -type f -name "*.tex" | xargs wc -m \
                                   | awk '{if ($1 > 200) {print $0}}' \
@@ -341,9 +333,9 @@ image::awaiter.png[80%, 70%]
 
 [source,cpp]
 ----
-import std.core; // 导入标准库模块
+import std.core; // 导入标准库模块，需要C++23
 int main() {
-  std::cout << "Hello world" << std::endl;
+    std::cout << "Hello world" << std::endl;
 }
 ----
 
