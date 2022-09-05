@@ -324,8 +324,6 @@ constexpr auto li = LiTag<content>{};
 ----
 --
 
-== 编译期字符串操作
-
 == std::thread实现
 `std::thread` 原型
 
@@ -374,4 +372,32 @@ struct thread {
 private:
     pthread_t handle_;
 };
+----
+
+== 静态反射
+https://github.com/netcan/config-loader
+
+定义数据结构
+[source,cpp]
+----
+// define and reflect a struct
+DEFINE_SCHEMA(Point,                          // struct Point {
+              (double) x,                     //     double x;
+              (double) y);                    //     double y;
+                                              // };
+
+// vector and string
+DEFINE_SCHEMA(SomeOfPoints,                   // struct SomeOfPoints {
+              (std::string) name,             //     std::string name;
+              (std::vector<Point>) points);   //     std::vector<Point> points;
+                                              // };
+----
+
+生成代码
+[source,cpp]
+----
+SomeOfPoints someOfPoints;
+loadXML2Obj(someOfPoints, "someOfPoints.xml");
+loadYML2Obj(someOfPoints, "someOfPoints.yml");
+loadJSON2Obj(someOfPoints, "someOfPoints.json");
 ----

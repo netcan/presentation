@@ -592,7 +592,6 @@ constexpr auto ol(LI...) {
 
 template&lt;StringLiteral content&gt;
 constexpr auto li = LiTag&lt;content&gt;{};</code></pre></div></div></div></div></div></section>
-<section id="_编译期字符串操作"><h2>编译期字符串操作</h2></section>
 <section id="_stdthread实现"><h2>std::thread实现</h2><div class="slide-content"><div class="paragraph"><p><code>std::thread</code> 原型</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename Function, typename... Args&gt;
 explicit thread(Function&amp;&amp; f, Args&amp;&amp;... args);
@@ -626,7 +625,25 @@ th.join();</code></pre></div></div>
     }
 private:
     pthread_t handle_;
-};</code></pre></div></div></div></section></div></div><script src="https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
+};</code></pre></div></div></div></section>
+<section id="_静态反射"><h2>静态反射</h2><div class="slide-content"><div class="paragraph"><p><a href="https://github.com/netcan/config-loader" class="bare">https://github.com/netcan/config-loader</a></p></div>
+<div class="paragraph"><p>定义数据结构</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">// define and reflect a struct
+DEFINE_SCHEMA(Point,                          // struct Point {
+              (double) x,                     //     double x;
+              (double) y);                    //     double y;
+                                              // };
+
+// vector and string
+DEFINE_SCHEMA(SomeOfPoints,                   // struct SomeOfPoints {
+              (std::string) name,             //     std::string name;
+              (std::vector&lt;Point&gt;) points);   //     std::vector&lt;Point&gt; points;
+                                              // };</code></pre></div></div>
+<div class="paragraph"><p>生成代码</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">SomeOfPoints someOfPoints;
+loadXML2Obj(someOfPoints, "someOfPoints.xml");
+loadYML2Obj(someOfPoints, "someOfPoints.yml");
+loadJSON2Obj(someOfPoints, "someOfPoints.json");</code></pre></div></div></div></section></div></div><script src="https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.js"></script><script>Array.prototype.slice.call(document.querySelectorAll('.slides section')).forEach(function(slide) {
   if (slide.getAttribute('data-background-color')) return;
   // user needs to explicitly say he wants CSS color to override otherwise we might break custom css or theme (#226)
   if (!(slide.classList.contains('canvas') || slide.classList.contains('background'))) return;
