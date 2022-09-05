@@ -1,0 +1,377 @@
+= C++可变参数
+:customcss: ../presentation.css
+:revealjsdir: https://cdn.jsdelivr.net/npm/reveal.js@3.9.2
+:revealjs_plugins: ../presentation_plugins.js
+:revealjs_plugins_configuration: ../presentation_plugins_conf.js
+:revealjs_theme: serif
+:highlightjs-theme: https://cdn.jsdelivr.net/npm/highlight.js@10.2.1/styles/github-gist.css
+:highlightjs-languages: c,cpp,bash,js,rust,html
+:source-highlighter: highlightjs
+:revealjs_history: true
+:revealjs_pdfseparatefragments: false
+:revealjs_transition: slide
+:revealjs_slideNumber: c/t
+:revealjs_fragmentInURL: true
+:icons: font
+:stem:
+Netcan {docdate} @Shanghai
+
+include::../common/self_introduction.adoc[]
+== 议程
+
+
+== 各语言中的可变参数
+预处理宏
+[source,c]
+----
+#define add_1(a) a
+#define add_2(a, b) a + b
+#define add_3(a, b, c) a + add_2(b, c)
+
+#define add(...) PASTE(add_, GET_ARG_COUNT(__VA_ARGS__)) (__VA_ARGS__)
+----
+
+Rust声明宏
+[source,rust]
+----
+macro_rules! add {
+    ($($x:expr), *) => {
+        0 $( + $x )*
+    }
+}
+add!(1, 2, 3, 4)
+----
+
+== 各语言中的可变参数
+C语言
+[source,c]
+----
+int add(int n, ...) {
+    va_list args;
+    va_start(args, n);
+    int ret = 0;
+
+    while(n-- > 0)
+        ret += va_arg(args, int);
+
+    va_end(args);
+    return ret;
+}
+----
+
+== 各语言中的可变参数
+Bash语言
+[source,bash]
+----
+function add {
+    sum=0
+    for v in "$@"; do
+        sum=$((sum+$v))
+    done
+    echo $sum
+}
+
+add 1 2 3
+----
+
+Python语言
+[source,js]
+----
+def add(*args):
+    return sum(args)
+----
+
+Js语言
+[source,js]
+----
+function add(...args) {
+    return args.reduce((c, p) => c + p, 0)
+}
+----
+
+== 各语言中的可变参数
+特点
+
+* 存在参数包的概念
+* 存在展开的概念
+* 支持遍历的功能
+* 库专用特性
+
+缺点
+
+* 预处理宏难以移植
+* 缺少类型信息
+* 类型不安全
+* 性能差
+
+== C++中的可变参数
+[source,cpp]
+----
+template<typename... T>
+constexpr auto add(T... v) {
+    return (0 + ... + v);
+}
+----
+
+* C++11起支持可变模板参数
+* C++17起支持折叠表达式
+
+== 可变模板参数包
+[source,cpp]
+----
+template<typename... Args>
+void f(Args... args) {
+    constexpr auto s1 = sizeof...(Args); // 模板参数包
+    constexpr auto s2 = sizeof...(Args); // 函数参数包
+    static_assert(s1 == s2);
+}
+----
+
+* 模板参数包：存放函数参数包对应的类型
+* 函数参数包：存放传递给函数的实参包
+
+== 参数包展开
+[source,cpp]
+----
+template<typename... Args>
+void f(Args... args) {
+    std::tuple<Args...> tup = // 展开模板参数包
+        std::make_tuple(args...); // 展开函数参数包
+}
+----
+
+`f(1, "2", 3.0)` 展开后的结果 https://cppinsights.io/s/b78454ba
+
+[source,cpp]
+----
+template<>
+void f<int, const char *, double>(int __args0, const char * __args1, double __args2) {
+  std::tuple<int, const char *, double> tup =
+    std::make_tuple(__args0, __args1, __args2);
+}
+----
+
+== 参数包遍历
+递归遍历：
+[source,cpp]
+----
+void print() { }
+
+template<typename A, typename... Args>
+void print(const A& arg, const Args&... args) {
+    std::cout << arg << std::endl;
+    print(args...); // 递归与参数包展开
+}
+----
+
+== 折叠表达式
+
+* 右折叠：`(pack op ... [op init])`
+* 左折叠：`([init op] ... op pack)`
+
+[source,cpp]
+----
+template<int ...Is> // 右折叠
+constexpr int rsub = (Is - ... - 0); // (Is - ...)
+template<int ...Is> // 左折叠
+constexpr int lsub = (0 - ... - Is);
+// (1 - (2 - (3 - (4 - (5 - 0)))))
+static_assert(rsub<1,2,3,4,5> == 3);
+// (((((0 - 1) - 2) - 3) - 4) - 5)
+static_assert(lsub<1,2,3,4,5> == -15);
+----
+
+== 构建eDSL
+https://godbolt.org/z/xKjzGvq6n ~600 行汇编
+
+[source,cpp]
+----
+auto v = html(ul( li("Coffee")
+                , li("Tea")
+                , li("Milk")),
+              ol( li("hello"),
+                  li("world")));
+
+HtmlDumpper{std::cout}(v);
+----
+
+输出
+[source,html]
+----
+<html>
+<ul>
+<li>Coffee</li>
+<li>Tea</li>
+<li>Milk</li>
+</ul>
+<ul>
+<li>hello</li>
+<li>world</li>
+</ul>
+</html>
+----
+
+== 构建eDSL
+[source,cpp]
+----
+struct LiTag {
+    std::string_view content;
+};
+
+auto li(std::string_view vs) {
+    return LiTag { vs };
+}
+
+struct UlTag {
+    template<typename... Args>
+    UlTag(Args... arg) {
+        (liTag_.emplace_back(arg), ...);
+    }
+    std::vector<LiTag> liTag_;
+};
+
+template<typename... LI>
+auto ul(LI... li) {
+    return UlTag { li... };
+}
+----
+
+== 构建eDSL
+[source,cpp]
+----
+struct OlTag {
+    template<typename... Args>
+    OlTag(Args... arg) {
+        (liTag_.emplace_back(arg), ...);
+    }
+    std::vector<LiTag> liTag_;
+};
+
+template<typename... LI>
+auto ol(LI... li) {
+    return UlTag { li... };
+}
+
+struct HtmlTag {
+    template<typename... Es>
+    HtmlTag(Es... es) {
+        (elems_.emplace_back(es), ...);
+    }
+    using Elem = std::variant<UlTag, OlTag>;
+    std::vector<Elem> elems_;
+};
+
+template<typename... E>
+auto html(E... e) {
+    return HtmlTag { e... };
+}
+----
+
+== 构建eDSL：元编程
+https://godbolt.org/z/zE8Y3b9aa ~70 行汇编
+
+[source,cpp]
+----
+constexpr auto v = html(ul( li<"Coffee">
+                          , li<"Tea">
+                          , li<"Milk">),
+                        ol( li<"hello">,
+                            li<"world">));
+htmlDumpper(v);
+----
+
+[.columns]
+== 构建eDSL：元编程
+[.column]
+--
+[source,cpp]
+----
+template<typename... LI>
+struct UlTag { };
+
+template<typename... UI>
+struct OlTag { };
+
+template<typename... Es>
+struct HtmlTag { };
+
+template<StringLiteral content>
+struct LiTag { };
+----
+--
+
+[.column]
+--
+[source,cpp]
+----
+template<typename... E>
+constexpr auto html(E...) {
+    return HtmlTag<E...> {};
+}
+
+template<typename... LI>
+constexpr auto ul(LI...) {
+    return UlTag<LI...>{};
+}
+
+template<typename... LI>
+constexpr auto ol(LI...) {
+    return OlTag<LI...>{};
+}
+
+template<StringLiteral content>
+constexpr auto li = LiTag<content>{};
+----
+--
+
+== 编译期字符串操作
+
+== std::thread实现
+`std::thread` 原型
+
+[source,cpp]
+----
+template<typename Function, typename... Args>
+explicit thread(Function&& f, Args&&... args);
+
+// example
+std::thread th(f, a, b);
+th.join();
+----
+
+`pthread` 原型
+
+[source,cpp]
+----
+int pthread_create(pthread_t *thread,
+                   const pthread_attr_t *attr,
+                   void *(*start_routine)(void *),
+                   void *arg);
+----
+
+== std::thread实现
+[source,cpp]
+----
+struct thread {
+    template<typename F, typename... Args>
+    explicit thread(F f, Args... args) {
+        using FnArgs = std::tuple<F, std::tuple<Args...>>;
+        std::unique_ptr<FnArgs> argsTup { new FnArgs(f, {args...}) };
+
+        int rc = pthread_create(&handle_, nullptr, [](void* fnArgs) -> void *{
+            std::unique_ptr<FnArgs> argsTup { static_cast<FnArgs*>(fnArgs) };
+            auto& [fn, args] = *argsTup;
+            std::apply(fn, args);
+            return nullptr;
+        }, argsTup.get());
+
+        if (rc == 0) argsTup.release();
+        else throw;
+    }
+    void join() {
+        pthread_join(handle_, nullptr);
+    }
+private:
+    pthread_t handle_;
+};
+----
