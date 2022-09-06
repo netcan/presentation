@@ -17,8 +17,17 @@
 Netcan {docdate} @Shanghai
 
 include::../common/self_introduction.adoc[]
-== 议程
 
+== 议程
+* 各语言中的可变参数
+* C++中的可变参数
+* 可变模板参数包
+* 参数包展开、遍历
+* 元编程灵魂：折叠表达式
+* 构建eDSL（动态 vs 静态）
+* 生成switch-case结构
+* 剖析std::thread实现
+* 静态反射 Reflection TS
 
 == 各语言中的可变参数
 预处理宏
@@ -181,6 +190,37 @@ static_assert(rsub<1,2,3,4,5> == 3);
 static_assert(lsub<1,2,3,4,5> == -15);
 ----
 
+利用折叠表达式遍历：
+[source,cpp]
+----
+template<typename... Args>
+void print(const Args&... args) {
+    ((std::cout << args << std::endl), ...); // 逗号表达式、折叠表达式
+}
+----
+
+== 参数包展开 vs 折叠表达式
+https://cppinsights.io/s/35f7ec5d
+
+[source,cpp]
+----
+template<typename... Ts>
+void f(Ts... args) {
+    auto v  = {args  ...}; // 参数包展开
+    auto v_ = (args, ...); // 折叠表达式
+}
+----
+
+[source,cpp]
+----
+template<>
+void f<int, int, int, int>(int __args0, int __args1, int __args2, int __args3)
+{
+  std::initializer_list<int> v = {__args0, __args1, __args2, __args3};
+  int v_ = __args0 , (__args1 , (__args2 , __args3));
+}
+----
+
 == 构建eDSL
 https://godbolt.org/z/xKjzGvq6n ~600 行汇编
 
@@ -324,6 +364,56 @@ constexpr auto li = LiTag<content>{};
 ----
 --
 
+== 生成switch-case结构
+通常的std::get使用
+[source,cpp]
+----
+auto tp = std::make_tuple(1, 2.0, 3.0f);
+std::get<2>(tp); // 3.0f
+----
+
+希望提供动态的get
+[source,cpp]
+----
+template<typename... Ts>
+const void* get(const std::tuple<Ts...>& tup, size_t index);
+
+get(tp, 2);
+----
+
+== 生成switch-case结构
+预期：
+[source,cpp]
+----
+template<typename... Ts>
+const void* get(const std::tuple<Ts...>& tup, size_t index) {
+    switch (index) {
+        case 0: return &std::get<0>(tup);
+        case 1: return &std::get<1>(tup);
+        case 2: return &std::get<2>(tup);
+        default: return nullptr;
+    }
+}
+----
+
+使用折叠表达式：
+[source,cpp]
+----
+template<typename... Ts>
+const void* get(const std::tuple<Ts...>& tup, size_t index) {
+    auto getE = [&]<size_t I>(std::in_place_index_t<I>, size_t index) -> const void* {
+        return I == index ? &std::get<I>(tup) : nullptr;
+    };
+
+    const void* res = nullptr;
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+        (((res = getE(std::in_place_index_t<Is>{}, index)) != nullptr) || ...);
+    }(std::make_index_sequence<sizeof...(Ts)>{});
+
+    return res;
+}
+----
+
 == std::thread实现
 `std::thread` 原型
 
@@ -374,30 +464,76 @@ private:
 };
 ----
 
-== 静态反射
-https://github.com/netcan/config-loader
+== 静态反射 Reflection TS
+https://godbolt.org/z/eG18vzf4v
 
 定义数据结构
 [source,cpp]
 ----
-// define and reflect a struct
-DEFINE_SCHEMA(Point,                          // struct Point {
-              (double) x,                     //     double x;
-              (double) y);                    //     double y;
-                                              // };
+struct Point {
+    double x;
+    double y;
+};
 
-// vector and string
-DEFINE_SCHEMA(SomeOfPoints,                   // struct SomeOfPoints {
-              (std::string) name,             //     std::string name;
-              (std::vector<Point>) points);   //     std::vector<Point> points;
-                                              // };
+struct Rect {
+    Point p1;
+    Point p2;
+};
+
+dump(Rect{{1.2, 3.4}, {4.5, 5.6}});
 ----
 
-生成代码
+输出结果
 [source,cpp]
 ----
-SomeOfPoints someOfPoints;
-loadXML2Obj(someOfPoints, "someOfPoints.xml");
-loadYML2Obj(someOfPoints, "someOfPoints.yml");
-loadJSON2Obj(someOfPoints, "someOfPoints.json");
+(Point) p1:
+    (double) x: 1.2
+    (double) y: 3.4
+(Point) p2:
+    (double) x: 4.5
+    (double) y: 5.6
 ----
+
+== 静态反射 Reflection TS
+[source,cpp]
+----
+template<typename T>
+void dump(T v, int depth = 0) {
+    auto indent = [depth] {
+        for (int i = 0; i < depth; ++i) std::cout << "    ";
+    };
+
+    using TMembers = refl::get_data_members_t<reflexpr(T)>;
+    [&]<typename... M>(TypeList<M...>) {
+        ([&]<typename M_>(M_) {
+            using MTypeObj = refl::get_type_t<M_>;
+            using MType = refl::get_reflected_type_t<MTypeObj>;
+            constexpr auto type_name = refl::get_name_v<MTypeObj>;
+            constexpr auto field_name = refl::get_name_v<M_>;
+            constexpr auto mptr = refl::get_pointer_v<M_>;
+            if constexpr (std::is_class_v<MType>) {
+                indent();
+                std::cout << "(" << type_name << ") "
+                          << field_name << ": " << std::endl;
+                dump(v.*mptr, depth + 1);
+            } else {
+                indent();
+                std::cout << "(" << type_name << ") "
+                          << field_name << ": "<< v.*mptr << std::endl;
+            }
+        }(M{}), ...);
+    }(refl::unpack_sequence_t<TypeList, TMembers>{});
+}
+----
+
+== 参考资料
+* 机工社 https://item.jd.com/10054930586115.html[《C++20高级编程》]
+* https://en.cppreference.com/w/cpp/language/parameter_pack[Parameter pack]
+* https://en.cppreference.com/w/cpp/language/fold[fold expression]
+* https://www.zhihu.com/question/531411932/answer/2473083339[如何将 std::get 封装到 tuple 中？]
+* https://www.zhihu.com/question/463875728/answer/1934003540[以下C++代码怎么理解，这模板怎么推导的？]
+* https://www.linkedin.com/pulse/modern-c-variadic-functions-how-shoot-yourself-foot-avoid-zinin/[Modern C++ and Variadic Functions: How to Shoot Yourself in the Foot and How to Avoid It]
+* https://doc.rust-lang.org/reference/macros-by-example.html[Rust Macros By Example]
+* https://man7.org/linux/man-pages/man3/pthread_create.3.html[pthread_create(3) — Linux manual page]
+* https://github.com/netcan/recipes/blob/master/cpp/metaproggramming/MetaMacro.hpp[MetaMacro.hpp]
+* http://cplusplus.github.io/reflection-ts/draft.pdf[reflection-ts]
