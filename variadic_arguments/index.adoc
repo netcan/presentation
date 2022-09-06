@@ -24,6 +24,7 @@ include::../common/self_introduction.adoc[]
 * 可变模板参数包
 * 参数包展开、遍历
 * 元编程灵魂：折叠表达式
+* 遍历tuple
 * 构建eDSL（动态 vs 静态）
 * 生成switch-case结构
 * 剖析std::thread实现
@@ -144,7 +145,7 @@ void f(Args... args) {
 ----
 template<typename... Args>
 void f(Args... args) {
-    std::tuple<Args...> tup = // 展开模板参数包
+    std::tuple<Args...> tp = // 展开模板参数包
         std::make_tuple(args...); // 展开函数参数包
 }
 ----
@@ -155,7 +156,7 @@ void f(Args... args) {
 ----
 template<>
 void f<int, const char *, double>(int __args0, const char * __args1, double __args2) {
-  std::tuple<int, const char *, double> tup =
+  std::tuple<int, const char *, double> tp =
     std::make_tuple(__args0, __args1, __args2);
 }
 ----
@@ -180,9 +181,9 @@ void print(const A& arg, const Args&... args) {
 
 [source,cpp]
 ----
-template<int ...Is> // 右折叠
+template<int... Is> // 右折叠
 constexpr int rsub = (Is - ... - 0); // (Is - ...)
-template<int ...Is> // 左折叠
+template<int... Is> // 左折叠
 constexpr int lsub = (0 - ... - Is);
 // (1 - (2 - (3 - (4 - (5 - 0)))))
 static_assert(rsub<1,2,3,4,5> == 3);
@@ -214,10 +215,69 @@ void f(Ts... args) {
 [source,cpp]
 ----
 template<>
-void f<int, int, int, int>(int __args0, int __args1, int __args2, int __args3)
-{
-  std::initializer_list<int> v = {__args0, __args1, __args2, __args3};
-  int v_ = __args0 , (__args1 , (__args2 , __args3));
+void f<int, int, int, int>(int __args0, int __args1, int __args2, int __args3) {
+    std::initializer_list<int> v = {__args0, __args1, __args2, __args3};
+    int v_ = __args0 , (__args1 , (__args2 , __args3));
+}
+----
+
+== 遍历tuple
+C++11 特化、递归
+[source,cpp]
+----
+template<size_t N>
+struct dumpImpl {
+    template<typename Tup>
+    void operator()(const Tup& tp) const {
+        dumpImpl<N-1>{} (tp);
+        std::cout << std::get<N>(tp) << std::endl;
+    }
+};
+
+template<>
+struct dumpImpl<0> {
+    template<typename Tup>
+    void operator()(const Tup& tp) const {
+        std::cout << std::get<0>(tp) << std::endl;
+    }
+};
+
+template<typename... Ts>
+void dump(const std::tuple<Ts...>& tp) {
+    dumpImpl<sizeof...(Ts) - 1>{} (tp);
+}
+----
+
+[source,cpp]
+----
+auto tp = std::make_tuple(1, 2.0, 3.0f);
+dump(tp); // 1 2 3
+----
+
+== 遍历tuple
+C++14 integer_sequence
+[source,cpp]
+----
+template<typename Tup, size_t... I>
+void dumpImpl(const Tup& tp, std::index_sequence<I...>) {
+    auto l = { ((std::cout << std::get<I>(tp) << std::endl), 0)... };
+}
+
+template<typename... Ts>
+void dump(const std::tuple<Ts...>& tp) {
+    std::make_index_sequence<sizeof...(Ts)> seqs;
+    dumpImpl(tp, seqs);
+}
+----
+
+C++20 折叠表达式 + apply + 模板lambda
+[source,cpp]
+----
+jemplate<typename... Ts>
+void dump(const std::tuple<Ts...>& tp) {
+    std::apply([]<typename... Args>(const Args&... args) {
+        ((std::cout << args << std::endl),...);
+    }, tp);
 }
 ----
 
@@ -376,7 +436,7 @@ std::get<2>(tp); // 3.0f
 [source,cpp]
 ----
 template<typename... Ts>
-const void* get(const std::tuple<Ts...>& tup, size_t index);
+const void* get(const std::tuple<Ts...>& tp, size_t index);
 
 get(tp, 2);
 ----
@@ -386,11 +446,11 @@ get(tp, 2);
 [source,cpp]
 ----
 template<typename... Ts>
-const void* get(const std::tuple<Ts...>& tup, size_t index) {
+const void* get(const std::tuple<Ts...>& tp, size_t index) {
     switch (index) {
-        case 0: return &std::get<0>(tup);
-        case 1: return &std::get<1>(tup);
-        case 2: return &std::get<2>(tup);
+        case 0: return &std::get<0>(tp);
+        case 1: return &std::get<1>(tp);
+        case 2: return &std::get<2>(tp);
         default: return nullptr;
     }
 }
@@ -400,9 +460,9 @@ const void* get(const std::tuple<Ts...>& tup, size_t index) {
 [source,cpp]
 ----
 template<typename... Ts>
-const void* get(const std::tuple<Ts...>& tup, size_t index) {
+const void* get(const std::tuple<Ts...>& tp, size_t index) {
     auto getE = [&]<size_t I>(std::in_place_index_t<I>, size_t index) -> const void* {
-        return I == index ? &std::get<I>(tup) : nullptr;
+        return I == index ? &std::get<I>(tp) : nullptr;
     };
 
     const void* res = nullptr;
@@ -465,7 +525,7 @@ private:
 ----
 
 == 静态反射 Reflection TS
-https://godbolt.org/z/eG18vzf4v
+https://godbolt.org/z/heh1zdErc
 
 定义数据结构
 [source,cpp]
@@ -480,6 +540,8 @@ struct Rect {
     Point p2;
 };
 
+template<typename T>
+void dump(const T& v, int depth = 0);
 dump(Rect{{1.2, 3.4}, {4.5, 5.6}});
 ----
 
@@ -497,8 +559,10 @@ dump(Rect{{1.2, 3.4}, {4.5, 5.6}});
 == 静态反射 Reflection TS
 [source,cpp]
 ----
+template<typename... T> struct TypeList {};
+
 template<typename T>
-void dump(T v, int depth = 0) {
+void dump(const T& v, int depth = 0) {
     auto indent = [depth] {
         for (int i = 0; i < depth; ++i) std::cout << "    ";
     };
@@ -511,15 +575,13 @@ void dump(T v, int depth = 0) {
             constexpr auto type_name = refl::get_name_v<MTypeObj>;
             constexpr auto field_name = refl::get_name_v<M_>;
             constexpr auto mptr = refl::get_pointer_v<M_>;
-            if constexpr (std::is_class_v<MType>) {
-                indent();
-                std::cout << "(" << type_name << ") "
-                          << field_name << ": " << std::endl;
+            indent();
+            std::cout << "(" << type_name << ") " << field_name << ": ";
+            if constexpr(std::is_class_v<MType>) {
+                std::cout << std::endl;
                 dump(v.*mptr, depth + 1);
             } else {
-                indent();
-                std::cout << "(" << type_name << ") "
-                          << field_name << ": "<< v.*mptr << std::endl;
+                std::cout << v.*mptr << std::endl;
             }
         }(M{}), ...);
     }(refl::unpack_sequence_t<TypeList, TMembers>{});

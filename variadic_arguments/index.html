@@ -404,7 +404,7 @@ link.rel = 'stylesheet';
 link.type = 'text/css';
 link.href = window.location.search.match( /print-pdf/gi ) ? "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/css/print/pdf.css" : "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/css/print/paper.css";
 document.getElementsByTagName( 'head' )[0].appendChild( link );</script><link rel="stylesheet" href="../presentation.css"></head><body><div class="reveal"><div class="slides"><section class="title" data-state="title"><h1>C++可变参数</h1><p class="author"><small>Netcan 2022-09-07 @Shanghai</small></p></section><section id="_自我介绍"><h2>自我介绍</h2><div class="slide-content"><div class="ulist"><ul><li><p>96年出生，18年毕业于合肥工业大学本科</p></li><li><p>某大厂高级工程师</p></li><li><p>机工社 <a href="https://item.jd.com/10054930586115.html">《C++20高级编程》</a>作者</p></li><li><p>知乎 <a href="https://www.zhihu.com/column/c_1289690410462785536">《魅力C++》</a> 专栏作者</p></li><li><p>兴趣：CS, OO, FP, Design, Coding, Writing</p></li><li><p>Skills: C/C++/Rust, Haskell/Scheme, Bash/Python</p></li></ul></div></div></section>
-<section id="_议程"><h2>议程</h2><div class="slide-content"><div class="ulist"><ul><li><p>各语言中的可变参数</p></li><li><p>C++中的可变参数</p></li><li><p>可变模板参数包</p></li><li><p>参数包展开、遍历</p></li><li><p>元编程灵魂：折叠表达式</p></li><li><p>构建eDSL（动态 vs 静态）</p></li><li><p>生成switch-case结构</p></li><li><p>剖析std::thread实现</p></li><li><p>静态反射 Reflection TS</p></li></ul></div></div></section>
+<section id="_议程"><h2>议程</h2><div class="slide-content"><div class="ulist"><ul><li><p>各语言中的可变参数</p></li><li><p>C++中的可变参数</p></li><li><p>可变模板参数包</p></li><li><p>参数包展开、遍历</p></li><li><p>元编程灵魂：折叠表达式</p></li><li><p>遍历tuple</p></li><li><p>构建eDSL（动态 vs 静态）</p></li><li><p>生成switch-case结构</p></li><li><p>剖析std::thread实现</p></li><li><p>静态反射 Reflection TS</p></li></ul></div></div></section>
 <section id="_各语言中的可变参数"><h2>各语言中的可变参数</h2><div class="slide-content"><div class="paragraph"><p>预处理宏</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-c hljs" data-noescape="true" data-lang="c">#define add_1(a) a
 #define add_2(a, b) a + b
@@ -465,13 +465,13 @@ void f(Args... args) {
 <div class="ulist"><ul><li><p>模板参数包：存放函数参数包对应的类型</p></li><li><p>函数参数包：存放传递给函数的实参包</p></li></ul></div></div></section>
 <section id="_参数包展开"><h2>参数包展开</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Args&gt;
 void f(Args... args) {
-    std::tuple&lt;Args...&gt; tup = // 展开模板参数包
+    std::tuple&lt;Args...&gt; tp = // 展开模板参数包
         std::make_tuple(args...); // 展开函数参数包
 }</code></pre></div></div>
 <div class="paragraph"><p><code>f(1, "2", 3.0)</code> 展开后的结果 <a href="https://cppinsights.io/s/b78454ba" class="bare">https://cppinsights.io/s/b78454ba</a></p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;&gt;
 void f&lt;int, const char *, double&gt;(int __args0, const char * __args1, double __args2) {
-  std::tuple&lt;int, const char *, double&gt; tup =
+  std::tuple&lt;int, const char *, double&gt; tp =
     std::make_tuple(__args0, __args1, __args2);
 }</code></pre></div></div></div></section>
 <section id="_参数包遍历"><h2>参数包遍历</h2><div class="slide-content"><div class="paragraph"><p>递归遍历：</p></div>
@@ -483,9 +483,9 @@ void print(const A&amp; arg, const Args&amp;... args) {
     print(args...); // 递归与参数包展开
 }</code></pre></div></div></div></section>
 <section id="_折叠表达式"><h2>折叠表达式</h2><div class="slide-content"><div class="ulist"><ul><li><p>右折叠：<code>(pack op &#8230;&#8203; [op init])</code></p></li><li><p>左折叠：<code>([init op] &#8230;&#8203; op pack)</code></p></li></ul></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;int ...Is&gt; // 右折叠
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;int... Is&gt; // 右折叠
 constexpr int rsub = (Is - ... - 0); // (Is - ...)
-template&lt;int ...Is&gt; // 左折叠
+template&lt;int... Is&gt; // 左折叠
 constexpr int lsub = (0 - ... - Is);
 // (1 - (2 - (3 - (4 - (5 - 0)))))
 static_assert(rsub&lt;1,2,3,4,5&gt; == 3);
@@ -503,10 +503,51 @@ void f(Ts... args) {
     auto v_ = (args, ...); // 折叠表达式
 }</code></pre></div></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;&gt;
-void f&lt;int, int, int, int&gt;(int __args0, int __args1, int __args2, int __args3)
-{
-  std::initializer_list&lt;int&gt; v = {__args0, __args1, __args2, __args3};
-  int v_ = __args0 , (__args1 , (__args2 , __args3));
+void f&lt;int, int, int, int&gt;(int __args0, int __args1, int __args2, int __args3) {
+    std::initializer_list&lt;int&gt; v = {__args0, __args1, __args2, __args3};
+    int v_ = __args0 , (__args1 , (__args2 , __args3));
+}</code></pre></div></div></div></section>
+<section id="_遍历tuple"><h2>遍历tuple</h2><div class="slide-content"><div class="paragraph"><p>C++11 特化、递归</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;size_t N&gt;
+struct dumpImpl {
+    template&lt;typename Tup&gt;
+    void operator()(const Tup&amp; tp) const {
+        dumpImpl&lt;N-1&gt;{} (tp);
+        std::cout &lt;&lt; std::get&lt;N&gt;(tp) &lt;&lt; std::endl;
+    }
+};
+
+template&lt;&gt;
+struct dumpImpl&lt;0&gt; {
+    template&lt;typename Tup&gt;
+    void operator()(const Tup&amp; tp) const {
+        std::cout &lt;&lt; std::get&lt;0&gt;(tp) &lt;&lt; std::endl;
+    }
+};
+
+template&lt;typename... Ts&gt;
+void dump(const std::tuple&lt;Ts...&gt;&amp; tp) {
+    dumpImpl&lt;sizeof...(Ts) - 1&gt;{} (tp);
+}</code></pre></div></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">auto tp = std::make_tuple(1, 2.0, 3.0f);
+dump(tp); // 1 2 3</code></pre></div></div></div></section>
+<section id="_遍历tuple_2"><h2>遍历tuple</h2><div class="slide-content"><div class="paragraph"><p>C++14 integer_sequence</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename Tup, size_t... I&gt;
+void dumpImpl(const Tup&amp; tp, std::index_sequence&lt;I...&gt;) {
+    auto l = { ((std::cout &lt;&lt; std::get&lt;I&gt;(tp) &lt;&lt; std::endl), 0)... };
+}
+
+template&lt;typename... Ts&gt;
+void dump(const std::tuple&lt;Ts...&gt;&amp; tp) {
+    std::make_index_sequence&lt;sizeof...(Ts)&gt; seqs;
+    dumpImpl(tp, seqs);
+}</code></pre></div></div>
+<div class="paragraph"><p>C++20 折叠表达式 + apply + 模板lambda</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">jemplate&lt;typename... Ts&gt;
+void dump(const std::tuple&lt;Ts...&gt;&amp; tp) {
+    std::apply([]&lt;typename... Args&gt;(const Args&amp;... args) {
+        ((std::cout &lt;&lt; args &lt;&lt; std::endl),...);
+    }, tp);
 }</code></pre></div></div></div></section>
 <section id="_构建edsl"><h2>构建eDSL</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/xKjzGvq6n" class="bare">https://godbolt.org/z/xKjzGvq6n</a> ~600 行汇编</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">auto v = html(ul( li("Coffee")
@@ -614,24 +655,24 @@ constexpr auto li = LiTag&lt;content&gt;{};</code></pre></div></div></div></div>
 std::get&lt;2&gt;(tp); // 3.0f</code></pre></div></div>
 <div class="paragraph"><p>希望提供动态的get</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Ts&gt;
-const void* get(const std::tuple&lt;Ts...&gt;&amp; tup, size_t index);
+const void* get(const std::tuple&lt;Ts...&gt;&amp; tp, size_t index);
 
 get(tp, 2);</code></pre></div></div></div></section>
 <section id="_生成switch_case结构_2"><h2>生成switch-case结构</h2><div class="slide-content"><div class="paragraph"><p>预期：</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Ts&gt;
-const void* get(const std::tuple&lt;Ts...&gt;&amp; tup, size_t index) {
+const void* get(const std::tuple&lt;Ts...&gt;&amp; tp, size_t index) {
     switch (index) {
-        case 0: return &amp;std::get&lt;0&gt;(tup);
-        case 1: return &amp;std::get&lt;1&gt;(tup);
-        case 2: return &amp;std::get&lt;2&gt;(tup);
+        case 0: return &amp;std::get&lt;0&gt;(tp);
+        case 1: return &amp;std::get&lt;1&gt;(tp);
+        case 2: return &amp;std::get&lt;2&gt;(tp);
         default: return nullptr;
     }
 }</code></pre></div></div>
 <div class="paragraph"><p>使用折叠表达式：</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Ts&gt;
-const void* get(const std::tuple&lt;Ts...&gt;&amp; tup, size_t index) {
+const void* get(const std::tuple&lt;Ts...&gt;&amp; tp, size_t index) {
     auto getE = [&amp;]&lt;size_t I&gt;(std::in_place_index_t&lt;I&gt;, size_t index) -&gt; const void* {
-        return I == index ? &amp;std::get&lt;I&gt;(tup) : nullptr;
+        return I == index ? &amp;std::get&lt;I&gt;(tp) : nullptr;
     };
 
     const void* res = nullptr;
@@ -675,7 +716,7 @@ th.join();</code></pre></div></div>
 private:
     pthread_t handle_;
 };</code></pre></div></div></div></section>
-<section id="_静态反射_reflection_ts"><h2>静态反射 Reflection TS</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/eG18vzf4v" class="bare">https://godbolt.org/z/eG18vzf4v</a></p></div>
+<section id="_静态反射_reflection_ts"><h2>静态反射 Reflection TS</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/heh1zdErc" class="bare">https://godbolt.org/z/heh1zdErc</a></p></div>
 <div class="paragraph"><p>定义数据结构</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">struct Point {
     double x;
@@ -687,6 +728,8 @@ struct Rect {
     Point p2;
 };
 
+template&lt;typename T&gt;
+void dump(const T&amp; v, int depth = 0);
 dump(Rect{{1.2, 3.4}, {4.5, 5.6}});</code></pre></div></div>
 <div class="paragraph"><p>输出结果</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">(Point) p1:
@@ -695,8 +738,10 @@ dump(Rect{{1.2, 3.4}, {4.5, 5.6}});</code></pre></div></div>
 (Point) p2:
     (double) x: 4.5
     (double) y: 5.6</code></pre></div></div></div></section>
-<section id="_静态反射_reflection_ts_2"><h2>静态反射 Reflection TS</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename T&gt;
-void dump(T v, int depth = 0) {
+<section id="_静态反射_reflection_ts_2"><h2>静态反射 Reflection TS</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... T&gt; struct TypeList {};
+
+template&lt;typename T&gt;
+void dump(const T&amp; v, int depth = 0) {
     auto indent = [depth] {
         for (int i = 0; i &lt; depth; ++i) std::cout &lt;&lt; "    ";
     };
@@ -709,15 +754,13 @@ void dump(T v, int depth = 0) {
             constexpr auto type_name = refl::get_name_v&lt;MTypeObj&gt;;
             constexpr auto field_name = refl::get_name_v&lt;M_&gt;;
             constexpr auto mptr = refl::get_pointer_v&lt;M_&gt;;
-            if constexpr (std::is_class_v&lt;MType&gt;) {
-                indent();
-                std::cout &lt;&lt; "(" &lt;&lt; type_name &lt;&lt; ") "
-                          &lt;&lt; field_name &lt;&lt; ": " &lt;&lt; std::endl;
+            indent();
+            std::cout &lt;&lt; "(" &lt;&lt; type_name &lt;&lt; ") " &lt;&lt; field_name &lt;&lt; ": ";
+            if constexpr(std::is_class_v&lt;MType&gt;) {
+                std::cout &lt;&lt; std::endl;
                 dump(v.*mptr, depth + 1);
             } else {
-                indent();
-                std::cout &lt;&lt; "(" &lt;&lt; type_name &lt;&lt; ") "
-                          &lt;&lt; field_name &lt;&lt; ": "&lt;&lt; v.*mptr &lt;&lt; std::endl;
+                std::cout &lt;&lt; v.*mptr &lt;&lt; std::endl;
             }
         }(M{}), ...);
     }(refl::unpack_sequence_t&lt;TypeList, TMembers&gt;{});
