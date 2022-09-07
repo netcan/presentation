@@ -443,7 +443,7 @@ add 1 2 3</code></pre></div></div>
 <div class="paragraph"><p>Python语言</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-js hljs" data-noescape="true" data-lang="js">def add(*args):
     return sum(args)</code></pre></div></div>
-<div class="paragraph"><p>Js语言</p></div>
+<div class="paragraph"><p>JavaScript语言</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-js hljs" data-noescape="true" data-lang="js">function add(...args) {
     return args.reduce((c, p) =&gt; c + p, 0)
 }</code></pre></div></div></div></section>
@@ -459,7 +459,7 @@ constexpr auto add(T... v) {
 <section id="_可变模板参数包"><h2>可变模板参数包</h2><div class="slide-content"><div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Args&gt;
 void f(Args... args) {
     constexpr auto s1 = sizeof...(Args); // 模板参数包
-    constexpr auto s2 = sizeof...(Args); // 函数参数包
+    constexpr auto s2 = sizeof...(args); // 函数参数包
     static_assert(s1 == s2);
 }</code></pre></div></div>
 <div class="ulist"><ul><li><p>模板参数包：存放函数参数包对应的类型</p></li><li><p>函数参数包：存放传递给函数的实参包</p></li></ul></div></div></section>
@@ -513,7 +513,7 @@ struct dumpImpl {
     template&lt;typename Tup&gt;
     void operator()(const Tup&amp; tp) const {
         dumpImpl&lt;N-1&gt;{} (tp);
-        std::cout &lt;&lt; std::get&lt;N&gt;(tp) &lt;&lt; std::endl;
+        std::cout &lt;&lt; std::get&lt;N&gt;(tp) &lt;&lt; " ";
     }
 };
 
@@ -521,7 +521,7 @@ template&lt;&gt;
 struct dumpImpl&lt;0&gt; {
     template&lt;typename Tup&gt;
     void operator()(const Tup&amp; tp) const {
-        std::cout &lt;&lt; std::get&lt;0&gt;(tp) &lt;&lt; std::endl;
+        std::cout &lt;&lt; std::get&lt;0&gt;(tp) &lt;&lt; " ";
     }
 };
 
@@ -534,7 +534,7 @@ dump(tp); // 1 2 3</code></pre></div></div></div></section>
 <section id="_遍历tuple_2"><h2>遍历tuple</h2><div class="slide-content"><div class="paragraph"><p>C++14 integer_sequence</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename Tup, size_t... I&gt;
 void dumpImpl(const Tup&amp; tp, std::index_sequence&lt;I...&gt;) {
-    auto l = { ((std::cout &lt;&lt; std::get&lt;I&gt;(tp) &lt;&lt; std::endl), 0)... };
+    auto l = { ((std::cout &lt;&lt; std::get&lt;I&gt;(tp) &lt;&lt; " "), 0)... };
 }
 
 template&lt;typename... Ts&gt;
@@ -542,14 +542,14 @@ void dump(const std::tuple&lt;Ts...&gt;&amp; tp) {
     std::make_index_sequence&lt;sizeof...(Ts)&gt; seqs;
     dumpImpl(tp, seqs);
 }</code></pre></div></div>
-<div class="paragraph"><p>C++20 折叠表达式 + apply + 模板lambda</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">jemplate&lt;typename... Ts&gt;
+<div class="paragraph"><p>C++20 折叠表达式 + apply + auto函数参数</p></div>
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">template&lt;typename... Ts&gt;
 void dump(const std::tuple&lt;Ts...&gt;&amp; tp) {
-    std::apply([]&lt;typename... Args&gt;(const Args&amp;... args) {
-        ((std::cout &lt;&lt; args &lt;&lt; std::endl),...);
+    std::apply([](const auto&amp;... args) {
+        ((std::cout &lt;&lt; args &lt;&lt; " "),...);
     }, tp);
 }</code></pre></div></div></div></section>
-<section id="_构建edsl"><h2>构建eDSL</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/xKjzGvq6n" class="bare">https://godbolt.org/z/xKjzGvq6n</a> ~600 行汇编</p></div>
+<section id="_构建edsl"><h2>构建eDSL</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/v7PbYh6oP" class="bare">https://godbolt.org/z/v7PbYh6oP</a> ~600 行汇编</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">auto v = html(ul( li("Coffee")
                 , li("Tea")
                 , li("Milk")),
@@ -615,7 +615,7 @@ template&lt;typename... E&gt;
 auto html(E... e) {
     return HtmlTag { e... };
 }</code></pre></div></div></div></section>
-<section id="_构建edsl元编程"><h2>构建eDSL：元编程</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/zE8Y3b9aa" class="bare">https://godbolt.org/z/zE8Y3b9aa</a> ~70 行汇编</p></div>
+<section id="_构建edsl元编程"><h2>构建eDSL：元编程</h2><div class="slide-content"><div class="paragraph"><p><a href="https://godbolt.org/z/fG5sPE1c3" class="bare">https://godbolt.org/z/fG5sPE1c3</a> ~70 行汇编</p></div>
 <div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-cpp hljs" data-noescape="true" data-lang="cpp">constexpr auto v = html(ul( li&lt;"Coffee"&gt;
                           , li&lt;"Tea"&gt;
                           , li&lt;"Milk"&gt;),

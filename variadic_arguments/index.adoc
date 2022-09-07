@@ -91,7 +91,7 @@ def add(*args):
     return sum(args)
 ----
 
-Js语言
+JavaScript语言
 [source,js]
 ----
 function add(...args) {
@@ -132,7 +132,7 @@ constexpr auto add(T... v) {
 template<typename... Args>
 void f(Args... args) {
     constexpr auto s1 = sizeof...(Args); // 模板参数包
-    constexpr auto s2 = sizeof...(Args); // 函数参数包
+    constexpr auto s2 = sizeof...(args); // 函数参数包
     static_assert(s1 == s2);
 }
 ----
@@ -230,7 +230,7 @@ struct dumpImpl {
     template<typename Tup>
     void operator()(const Tup& tp) const {
         dumpImpl<N-1>{} (tp);
-        std::cout << std::get<N>(tp) << std::endl;
+        std::cout << std::get<N>(tp) << " ";
     }
 };
 
@@ -238,7 +238,7 @@ template<>
 struct dumpImpl<0> {
     template<typename Tup>
     void operator()(const Tup& tp) const {
-        std::cout << std::get<0>(tp) << std::endl;
+        std::cout << std::get<0>(tp) << " ";
     }
 };
 
@@ -260,7 +260,7 @@ C++14 integer_sequence
 ----
 template<typename Tup, size_t... I>
 void dumpImpl(const Tup& tp, std::index_sequence<I...>) {
-    auto l = { ((std::cout << std::get<I>(tp) << std::endl), 0)... };
+    auto l = { ((std::cout << std::get<I>(tp) << " "), 0)... };
 }
 
 template<typename... Ts>
@@ -270,19 +270,19 @@ void dump(const std::tuple<Ts...>& tp) {
 }
 ----
 
-C++20 折叠表达式 + apply + 模板lambda
+C++20 折叠表达式 + apply + auto函数参数
 [source,cpp]
 ----
-jemplate<typename... Ts>
+template<typename... Ts>
 void dump(const std::tuple<Ts...>& tp) {
-    std::apply([]<typename... Args>(const Args&... args) {
-        ((std::cout << args << std::endl),...);
+    std::apply([](const auto&... args) {
+        ((std::cout << args << " "),...);
     }, tp);
 }
 ----
 
 == 构建eDSL
-https://godbolt.org/z/xKjzGvq6n ~600 行汇编
+https://godbolt.org/z/v7PbYh6oP ~600 行汇编
 
 [source,cpp]
 ----
@@ -368,7 +368,7 @@ auto html(E... e) {
 ----
 
 == 构建eDSL：元编程
-https://godbolt.org/z/zE8Y3b9aa ~70 行汇编
+https://godbolt.org/z/fG5sPE1c3 ~70 行汇编
 
 [source,cpp]
 ----
